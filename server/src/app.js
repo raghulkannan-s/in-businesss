@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import helmet from "helmet"
 import rateLimit from "express-rate-limit"
+import authRoutes from "./routes/authRoutes.js"
 
 const app = express()
 
@@ -19,5 +20,7 @@ app.use(limiter)
 app.get("/", (req, res) => {
     res.send("API is running...")
 })
+
+app.use("/api/auth", authRoutes)
 
 export default app;
