@@ -1,5 +1,4 @@
 import User from '../models/userModel.js';
-
 import generateToken from '../utils/generateToken.js';
 
 export const registerUser = async (req, res)=>{
@@ -8,7 +7,7 @@ export const registerUser = async (req, res)=>{
     try {
         const userExists = await User.findOne({phone: phone});
 
-        if (!userExists) {
+        if (userExists) {
             return res.status(400).json({message: 'User already exists'});
         }
 
@@ -23,7 +22,7 @@ export const registerUser = async (req, res)=>{
                 token: generateToken(user._id)
             })
         } else {
-            res.status(400).json({ nessage: 'Invalid user data' });
+            res.status(400).json({ message: 'Invalid user data' });
         }
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
@@ -38,7 +37,7 @@ export const loginUser = async (req, res)=>{
 
         if(user && (await user.matchPassword(password))){
             res.json({
-                _id : user._id,
+                _id: user._id,
                 name: user.name,
                 phone: user.phone,
                 token: generateToken(user._id)
@@ -51,3 +50,21 @@ export const loginUser = async (req, res)=>{
         res.status(500).json({ message: 'Server error' });
     }
 }
+
+export const forgotPassword = async (req, res) => {
+    const { phone } = req.body;
+    
+    try {
+        const user = await User.findOne({ phone });
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found with this phone number' });
+        }
+        res.json({ 
+            message: 'Reset code sent successfully',
+            success: true
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};

@@ -1,8 +1,7 @@
-import jwt, { verify } from "jsonwebtoken"
-
+import jwt from "jsonwebtoken"
 import User from "../models/userModel.js"
 
-const authMiddleware = async (req, res, next) => {
+export const authMiddleware = async (req, res, next) => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
     try {
@@ -18,7 +17,7 @@ const authMiddleware = async (req, res, next) => {
     }
 };
 
-const verifyToken = (token) => {
+export const verifyToken = (token) => {
     return new Promise((resolve, reject) => {
         jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
             if (err) {
@@ -29,6 +28,3 @@ const verifyToken = (token) => {
         });
     });
 };
-
-
-export default { verifyToken, authMiddleware };
