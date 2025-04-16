@@ -10,8 +10,9 @@ export const registerUser = async (req, res)=>{
         if (userExists) {
             return res.status(400).json({message: 'User already exists'});
         }
+        let hashedPassword = await bcrypt.hash(password, 10)
 
-        const user = await User.create({name, email, phone, password})
+        const user = await User.create({name, email, phone, hashedPassword})
 
         if (user) {
             res.status(201).json({
@@ -35,13 +36,13 @@ export const loginUser = async (req, res)=>{
     try {
         const user = await User.findOne({phone})
 
-        if(user && (await user.matchPassword(password))){
+        if(user && (await user.compare(password, 10))) {
             res.json({
                 _id: user._id,
                 name: user.name,
                 phone: user.phone,
                 token: generateToken(user._id)
-            })
+            });
         } else {
             res.status(400).json({ message: 'Invalid Phone number or Password' });
         }
