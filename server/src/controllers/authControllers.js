@@ -1,5 +1,6 @@
 import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
+import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
 export const registerUser = async (req, res)=>{
@@ -65,3 +66,33 @@ export const loginUser = async (req, res)=>{
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+export const verifyToken = async (req, res) => {
+    try {
+        const rawToken = req.body.token
+        const token = rawToken.split(" ")[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (!decoded) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+        const user = await User.findById(decoded._id);
+
+        if (user) {
+            res.status(200).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            score: user.score
+            });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    }
+    catch (error) {
+        console.error('Token verification error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}

@@ -1,11 +1,11 @@
 import express from "express";
-import { 
-    getAllUsers, 
-    getUserById, 
-    updateUser, 
-    deleteUser, 
+import {
+    getAllUsers,
+    getUserById,
+    updateUser,
+    deleteUser,
     getUserScore,
-    updateUserScore 
+    updateUserScore
 } from "../controllers/userControllers.js";
 import { authMiddleware, adminMiddleware } from "../middleware/authMiddleware.js";
 
