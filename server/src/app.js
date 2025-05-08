@@ -5,6 +5,8 @@ import rateLimit from "express-rate-limit"
 
 import authRoutes from "./routes/authRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
+import playerRoutes from "./routes/playerRoutes.js"
+import matchRoutes from "./routes/matchRoutes.js"
 
 const app = express()
 
@@ -25,5 +27,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
+app.use("/api/players", playerRoutes)
+app.use("/api/matches", matchRoutes)
 
 export default app;
