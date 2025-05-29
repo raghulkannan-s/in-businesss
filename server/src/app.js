@@ -24,6 +24,20 @@ app.use(limiter)
 app.get("/", (req, res) => {
     res.send("API is running...")
 })
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok", message: "Server is healthy" })
+})
+
+app.get("/status", (req, res) => {
+    res.status(200).json({ status: "ok", message: "Server is running" })
+})
+
+app.get("/ping", (req, res) => {
+    res.status(200).json({ status: "ok", message: "Pong!" })
+})
+app.get("/api", (req, res) => {
+    res.status(200).json({ status: "ok", message: "API is running" })
+})
 
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
