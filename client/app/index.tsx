@@ -12,7 +12,7 @@ export default function LoginScreen() {
   
   async function handleLogin() {
     setError('');
-    const backendUri = "http://localhost:3000";
+    const backendUri = "https://in-app-backend-frsf.onrender.com/";
 
     try {
       const res = await fetch(`${backendUri}/api/auth/login`, {

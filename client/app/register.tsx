@@ -8,8 +8,9 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const backendURI = 'http://localhost:3000';
+  const backendURI = 'https://in-app-backend-frsf.onrender.com/';
 
   async function handleRegister() {
     const res = await fetch(backendURI + '/api/auth/register', {
@@ -21,7 +22,13 @@ export default function RegisterScreen() {
     if (res.ok) {
       router.replace('/');
     } else {
-      alert('Registration failed');
+      try {
+        const data = await res.json();
+        setError(data.message || 'Registration failed');
+      } catch (err) {
+        setError('An error occurred while processing your request. Please try again later.');
+        console.error('Registration error:', err);
+      }
     }
   }
 
@@ -70,6 +77,9 @@ export default function RegisterScreen() {
       <View style={styles.buttonContainer}>
         <Button title="Register" onPress={handleRegister} color="#4F8EF7" />
       </View>
+      <Text style={{ color: 'red', marginTop: 10, textAlign: 'center' }}>
+        {error}
+      </Text>
     </View>
   );
 }
