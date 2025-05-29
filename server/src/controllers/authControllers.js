@@ -15,9 +15,9 @@ export const registerUser = async (req, res)=>{
         let hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({
-            name, 
-            email, 
-            phone, 
+            name,
+            email,
+            phone,
             password: hashedPassword,
             role
         });
@@ -43,6 +43,7 @@ export const registerUser = async (req, res)=>{
 
 export const loginUser = async (req, res)=>{
     const {phone, password} = req.body;
+    console.log("Login attempt with phone:", phone);
 
     try {
         const user = await User.findOne({phone});
