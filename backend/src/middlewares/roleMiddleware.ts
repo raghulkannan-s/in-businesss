@@ -1,17 +1,19 @@
 
 
-const roleMiddleware = (allowedRoles: string[]) => {
+export const roleMiddleware = (allowedRoles: string[]) => {
     return (req: any, res: any, next: any) => {
         const user = req.user;
 
-        if (!user || !user.roles) {
-            return res.status(403).json({ message: "Forbidden: No user roles found" });
+        if (!user || !user.role) {
+            res.status(403).json({ message: "Forbidden: No user roles found" });
+            return;
         }
 
-        const hasRole = user.roles.some((role: string) => allowedRoles.includes(role));
+        const hasRole = allowedRoles.includes(user.role);
 
         if (!hasRole) {
-            return res.status(403).json({ message: "Forbidden: You do not have the required role" });
+            res.status(403).json({ message: "Forbidden: You do not have the required role" });
+            return;
         }
 
         next();

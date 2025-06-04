@@ -10,6 +10,7 @@ app.use(express_1.default.json());
 app.use((0, cors_1.default)());
 const userRouter_1 = __importDefault(require("./routes/userRouter"));
 const authRouter_1 = __importDefault(require("./routes/authRouter"));
+const adminRouter_1 = __importDefault(require("./routes/adminRouter"));
 app.get("/", (req, res) => {
     res.status(200).json({
         status: "ok",
@@ -18,4 +19,5 @@ app.get("/", (req, res) => {
 });
 app.use("/users", userRouter_1.default);
 app.use('/auth', authRouter_1.default);
+app.use("/admin", adminRouter_1.default);
 exports.default = app;

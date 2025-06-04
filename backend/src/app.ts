@@ -1,12 +1,13 @@
 import express from "express";
 import cors from "cors";
-const app = express();
 
+const app = express();
 app.use(express.json());
-app.use(cors())
+app.use(cors());
 
 import userRouter from "./routes/userRouter";
 import authRouter from "./routes/authRouter";
+import adminRouter from "./routes/adminRouter";
 
 app.get("/", (req, res) => {
     res.status(200).json({
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/users", userRouter);
-app.use('/auth', authRouter)
+app.use('/auth', authRouter);
+app.use("/admin", adminRouter);
 
 export default app;

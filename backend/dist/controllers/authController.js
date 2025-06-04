@@ -8,24 +8,28 @@ const db_1 = require("../database/db");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const registerController = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, name, phone } = req.body;
     try {
-        const existingUser = await db_1.prisma.user.findUnique({ where: { email } });
+        const existingUser = await db_1.prisma.user.findUnique({
+            where: { phone }
+        });
         if (existingUser) {
-            return res.status(400).json({
+            res.status(400).json({
                 message: 'User already exists'
             });
+            return;
         }
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
         const user = await db_1.prisma.user.create({
             data: {
-                email,
+                email: email,
                 password: hashedPassword,
-                name: req.body.name,
-                phone: req.body.phone
+                name: name,
+                phone: phone,
+                role: "user"
             },
         });
-        res.status(201).json({ message: 'User registered', user: {
+        res.status(201).json({ message: 'User registered successfully', user: {
                 name: user.name,
                 phone: user.phone,
                 email: user.email
@@ -39,29 +43,38 @@ const registerController = async (req, res) => {
 };
 exports.registerController = registerController;
 const loginController = async (req, res) => {
-    const { email, password } = req.body;
+    const { phone, password } = req.body;
     try {
         const user = await db_1.prisma.user.findUnique({
-            where: { email }
+            where: { phone }
         });
         if (!user) {
-            return res.status(401).json({
+            res.status(401).json({
                 message: 'Invalid user'
             });
+            return;
         }
         const isMatch = await bcryptjs_1.default.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({
+            res.status(401).json({
                 message: 'Password Incorrect'
             });
+            return;
         }
         if (!process.env.JWT_SECRET) {
-            return res.status(500).json({
+            res.status(500).json({
                 message: 'JWT secret not configured. Contact Developer'
             });
+            return;
         }
-        const token = jsonwebtoken_1.default.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jsonwebtoken_1.default.sign({
+            userId: user.id,
+            role: user.role,
+            name: user.name,
+            phone: user.phone
+        }, process.env.JWT_SECRET, { expiresIn: '7d' });
         res.json({
+            message: "Login successful",
             token,
             user: {
                 name: user.name,
@@ -79,31 +92,35 @@ const loginController = async (req, res) => {
 exports.loginController = loginController;
 const verifyToken = async (req, res) => {
     if (!req.headers.authorization) {
-        return res.status(401).json({
+        res.status(401).json({
             message: 'No authorization header provided'
         });
+        return;
     }
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-        return res.status(401).json({
+        res.status(401).json({
             message: 'No token provided'
         });
+        return;
     }
     const token = authHeader.split(' ')[1];
     try {
         if (!process.env.JWT_SECRET) {
-            return res.status(500).json({
+            res.status(500).json({
                 message: 'JWT secret not configured. Contact Developer'
             });
+            return;
         }
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
         const user = await db_1.prisma.user.findUnique({
             where: { id: decoded.userId }
         });
         if (!user) {
-            return res.status(401).json({
+            res.status(401).json({
                 message: 'User not found'
             });
+            return;
         }
         res.json({
             message: "Token Verified, user found",

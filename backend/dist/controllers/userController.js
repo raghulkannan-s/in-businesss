@@ -1,11 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUsers = exports.getManagers = exports.getAdmins = exports.getAll = void 0;
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const db_1 = require("../database/db");
 const getAll = async (req, res) => {
     try {
-        const users = await prisma.user.findMany();
+        const users = await db_1.prisma.user.findMany();
         res.json(users);
     }
     catch (error) {
@@ -15,7 +14,7 @@ const getAll = async (req, res) => {
 exports.getAll = getAll;
 const getAdmins = async (req, res) => {
     try {
-        const admins = await prisma.user.findMany({
+        const admins = await db_1.prisma.user.findMany({
             where: { role: "admin" },
         });
         res.json(admins);
@@ -27,7 +26,7 @@ const getAdmins = async (req, res) => {
 exports.getAdmins = getAdmins;
 const getManagers = async (req, res) => {
     try {
-        const managers = await prisma.user.findMany({
+        const managers = await db_1.prisma.user.findMany({
             where: { role: "manager" },
         });
         res.json(managers);
@@ -39,7 +38,7 @@ const getManagers = async (req, res) => {
 exports.getManagers = getManagers;
 const getUsers = async (req, res) => {
     try {
-        const users = await prisma.user.findMany({
+        const users = await db_1.prisma.user.findMany({
             where: { role: "user" },
         });
         res.json(users);
