@@ -8,6 +8,7 @@ app.use(cors());
 import userRouter from "./routes/userRouter";
 import authRouter from "./routes/authRouter";
 import adminRouter from "./routes/adminRouter";
+import productRouter from "./routes/productRouter";
 
 app.get("/", (req, res) => {
     res.status(200).json({
@@ -19,5 +20,6 @@ app.get("/", (req, res) => {
 app.use("/users", userRouter);
 app.use('/auth', authRouter);
 app.use("/admin", adminRouter);
+app.use("/products", productRouter);
 
 export default app;
