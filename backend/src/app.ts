@@ -10,6 +10,7 @@ import authRouter from "./routes/authRouter";
 import adminRouter from "./routes/adminRouter";
 import productRouter from "./routes/productRouter";
 import eligibilityRouter from "./routes/eligibilityRouter";
+import scoreRouter from "./routes/scoreRouter";
 
 app.get("/", (req, res) => {
     res.status(200).json({
@@ -23,6 +24,7 @@ app.use('/auth', authRouter);
 app.use("/admin", adminRouter);
 app.use("/products", productRouter);
 app.use('/eligibility', eligibilityRouter);
+app.use("/score", scoreRouter);
 
 
 export default app;

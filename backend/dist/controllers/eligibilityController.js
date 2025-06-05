@@ -17,12 +17,14 @@ const getEligibility = async (req, res) => {
     if (user.eligibility == true) {
         res.status(200).json({
             message: `${user.name} is eligible`,
-            eligibility: user.eligibility
+            eligibility: user.eligibility,
+            score: user.score
         });
     }
     else {
         res.status(403).json({
             message: "Forbidden: User is not eligible",
+            score: user.score
         });
     }
 };
@@ -35,7 +37,8 @@ const allowUser = async (req, res) => {
     });
     res.status(200).json({
         message: `${user.name} is now eligible`,
-        eligibility: user.eligibility
+        eligibility: user.eligibility,
+        score: user.score
     });
 };
 exports.allowUser = allowUser;
@@ -47,7 +50,8 @@ const blockUser = async (req, res) => {
     });
     res.status(200).json({
         message: `${user.name} is now blocked`,
-        eligibility: user.eligibility
+        eligibility: user.eligibility,
+        score: user.score
     });
 };
 exports.blockUser = blockUser;
