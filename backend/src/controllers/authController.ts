@@ -1,142 +1,186 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
+import bcrypt from "bcryptjs";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyToken,
+} from "../lib/jwt";
+import { hashToken, compareToken } from "../lib/hash";
+
 import { prisma } from "../database/db";
 
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
-export const registerController = async (req: Request, res: Response) => {
-    const { email, password, name, phone } = req.body;
-    try {
-        const existingUser = await prisma.user.findUnique({
-            where: { phone }
-        });
-        if (existingUser) {
-            res.status(400).json({
-                message: 'User already exists'
-            });
-            return;
-        }
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await prisma.user.create({
-            data: {
-                email: email,
-                password: hashedPassword,
-                name: name,
-                phone: phone,
-                role: "user"
-            },
-        });
-        res.status(201).json({ message: 'User registered successfully', user: {
-            name: user.name,
-            phone: user.phone,
-            email: user.email
-        } });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Registration failed', error
-        });
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const phone = (req as any).user.phone;
+    if (!phone) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
     }
+
+    const user = await prisma.user.findUnique({
+      where: { phone: phone },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        eligibility: true,
+        score: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    res.status(200).json({ user });
+    return;
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+    return;
+  }
 };
 
-export const loginController = async (req: Request, res: Response) => {
-    const { phone, password } = req.body;
-    try {
-        const user = await prisma.user.findUnique({
-            where: { phone }
-        });
-        if (!user) {
-            res.status(401).json({
-                message: 'Invalid user'
-            });
-            return;
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            res.status(401).json({
-                message: 'Password Incorrect'
-            });
-            return;
-        }
-        if (!process.env.JWT_SECRET) {
-            res.status(500).json({
-                message: 'JWT secret not configured. Contact Developer'
-            });
-            return;
-        }
-        if( user.eligibility == false) {
-            res.status(403).json({
-                message: "User is not eligible"
-            });
-            return;
-        }
-        const token = jwt.sign({
-            userId: user.id,
-            role: user.role,
-            name: user.name,
-            phone: user.phone,
-            eligibility: user.eligibility
-        }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        res.json({
-            message: "Login successful",
-            token,
-            user: {
-                name: user.name,
-                email: user.email,
-                phone: user.phone,
-                eligibility: user.eligibility
-            }
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Login failed', error
-        });
-    }
+
+export const register = async (req: Request, res: Response) => {
+  const { name, email, phone, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const userExists = await prisma.user.findUnique({ where: { phone: phone } });
+  if (userExists){
+    res.status(400).json({ message: "User already exists" });
+    return;
+  }
+
+  const user = await prisma.user.create({
+    data: { name, email, phone, password: hashedPassword },
+  });
+
+  const accessToken = generateAccessToken(user.phone);
+  const refreshToken = generateRefreshToken(user.phone);
+  const hashedRefreshToken = await hashToken(refreshToken);
+
+  await prisma.user.update({
+    where: { phone: user.phone },
+    data: { refreshToken: hashedRefreshToken },
+  });
+
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 15 * 60 * 1000,
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.status(201).json({
+    phone: user.phone,
+    name: user.name,
+    email: user.email
+  });
 };
 
-export const verifyToken = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
+  const { phone, password } = req.body;
 
-    if(!req.headers.authorization){
-        res.status(401).json({ 
-            message: 'No authorization header provided' 
-        });
-        return;
+  const user = await prisma.user.findUnique({ where: { phone : phone } });
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    res.status(400).json({ message: "Invalid credentials" });
+    return;
+  }
+  
+  const accessToken = generateAccessToken(user.phone);
+  const refreshToken = generateRefreshToken(user.phone);
+  const hashedRefreshToken = await hashToken(refreshToken);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken: hashedRefreshToken },
+  });
+
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 15 * 60 * 1000,
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.json({
+    phone: user.phone,
+    name: user.name,
+    email: user.email
+  });
+};
+
+export const logout = async (req: Request, res: Response) => {
+  const phone = (req as any).user.phone;
+  await prisma.user.update({ where: { phone: phone }, data: { refreshToken: null } });
+
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+
+  res.json({ message: "Logged out" });
+};
+
+export const refreshAccessToken = async (req: Request, res: Response) => {
+  const incomingToken = req.cookies.refreshToken;
+  if (!incomingToken) {
+    res.status(401).json({ message: "No refresh token" });
+    return;
+  }
+
+  try {
+    const decoded = verifyToken(incomingToken, process.env.REFRESH_TOKEN_SECRET!) as { phone: string };
+    const user = await prisma.user.findUnique({ where: { phone: decoded.phone } });
+    if (!user || !user.refreshToken) throw new Error("User not found");
+
+    const match = await compareToken(incomingToken, user.refreshToken);
+    if (!match) {
+      res.status(403).json({ message: "Invalid refresh token" });
+      return;
     }
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        res.status(401).json({ 
-            message: 'No token provided'
-        });
-        return;
-    }
-    const token = authHeader.split(' ')[1];
-    try {
-        if (!process.env.JWT_SECRET) {
-            res.status(500).json({
-                message: 'JWT secret not configured. Contact Developer'
-            });
-            return;
-        }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET) as { userId: number };
-        const user = await prisma.user.findUnique({
-            where: { id: decoded.userId }
-        });
-        if (!user) {
-            res.status(401).json({
-                message: 'User not found'
-            });
-            return;
-        }
-        res.json({
-            message : "Token Verified, user found",
-            user: {
-                name: user.name,
-                phone: user.phone,
-                email: user.email
-            }
-        });
-    } catch (error) {
-        res.status(401).json({
-            message: 'Invalid token', error
-        });
+
+    const newAccessToken = generateAccessToken(user.phone);
+    const newRefreshToken = generateRefreshToken(user.phone);
+    const hashed = await hashToken(newRefreshToken);
+
+    await prisma.user.update({
+      where: { phone: user.phone },
+      data: { refreshToken: hashed },
+    });
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({ message: "Refreshed" });
+  } catch (err) {
+    res.status(403).json({ message: "Invalid or expired refresh token" });
+    return;
     }
 };

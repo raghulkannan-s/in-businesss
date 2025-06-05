@@ -1,10 +1,19 @@
-import { Router } from "express";
-const router = Router();
+import express from "express";
+import {
+  getMe,
+  register,
+  login,
+  logout,
+  refreshAccessToken,
+} from "../controllers/authController";
+import { authenticate } from "../middlewares/auth.middleware";
 
-import { loginController, registerController, verifyToken } from "../controllers/authController";
+const router = express.Router();
 
-router.post("/login", loginController);
-router.post("/register", registerController);
-router.get("/verify", verifyToken);
+router.get('/me', authenticate, getMe);
+router.post("/register", register);
+router.post("/login", login);
+router.post("/logout", authenticate, logout);
+router.post("/refresh", refreshAccessToken);
 
 export default router;

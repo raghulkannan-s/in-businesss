@@ -2,13 +2,14 @@ import { Router } from 'express';
 const router = Router();
 
 import { roleMiddleware } from '../middlewares/roleMiddleware';
-import { tokenVerify } from '../middlewares/tokenVerify';
+import { eligibilityCheck } from '../middlewares/eligibilityCheck';
+import { authenticate } from '../middlewares/auth.middleware';
 
 import { createProduct, updateProduct, deleteProduct, getProducts } from '../controllers/productController';
 
-router.get("/getAll", tokenVerify, getProducts);
-router.post("/create", tokenVerify, roleMiddleware(["admin"]), createProduct);
-router.put("/update/:id", tokenVerify, roleMiddleware(["admin"]), updateProduct);
-router.delete("/delete/:id", tokenVerify, roleMiddleware(["admin"]), deleteProduct);
+router.get("/getAll", authenticate, eligibilityCheck, getProducts);
+router.post("/create", authenticate, roleMiddleware(["admin"]), createProduct);
+router.put("/update/:id", authenticate, roleMiddleware(["admin"]), updateProduct);
+router.delete("/delete/:id", authenticate, roleMiddleware(["admin"]), deleteProduct);
 
 export default router;

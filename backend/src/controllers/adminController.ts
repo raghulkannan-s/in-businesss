@@ -3,15 +3,15 @@ import { prisma } from '../database/db';
 
 export const promotionController = async (req : Request, res : Response) => {
 
-    const {phone, role} = req.params;
+    const {id, role} = req.body;
 
-    if(!phone || !role) {
-        res.status(400).send("Phone and role are required");
+    if(!id || !role) {
+        res.status(400).send("id and role are required");
         return;
     }
     try {
         const user = await prisma.user.findUnique({
-            where: { phone: phone }
+            where: { id: id }
         });
 
         if (!user) {
@@ -20,13 +20,13 @@ export const promotionController = async (req : Request, res : Response) => {
         }
 
         await prisma.user.update({
-            where: { phone: phone },
+            where: { id: id },
             data: {
                 role: role
             }
         });
 
-        res.status(200).send(`User ${user.name} with phone ${user.phone} promoted from ${user.role} to ${role}`);
+        res.status(200).send(`User : ${user.name} with Phone ${user.phone} promoted from ${user.role} to ${role}`);
     } catch (error) {
         console.error("Error promoting user:", error);
         res.status(500).send("Internal server error");
@@ -35,15 +35,15 @@ export const promotionController = async (req : Request, res : Response) => {
 }
 
 export const demotionController = async (req : Request, res : Response) => {
-    const {phone, role} = req.params;
+    const {id, role} = req.body;
 
-    if(!phone || !role) {
-        res.status(400).send("Phone and role are required");
+    if(!id || !role) {
+        res.status(400).send("id and role are required");
         return;
     }
     try {
         const user = await prisma.user.findUnique({
-            where: { phone: phone }
+            where: { id: id }
         });
 
         if (!user) {
@@ -52,13 +52,13 @@ export const demotionController = async (req : Request, res : Response) => {
         }
 
         await prisma.user.update({
-            where: { phone: phone },
+            where: { id: id },
             data: {
                 role: role
             }
         });
 
-        res.status(200).send(`User ${user.name} with phone ${user.phone} demoted from ${user.role} to ${role}`);
+        res.status(200).send(`User : ${user.name} with Phone ${user.phone} demoted from ${user.role} to ${role}`);
     } catch (error) {
         console.error("Error demoting user:", error);
         res.status(500).send("Internal server error");

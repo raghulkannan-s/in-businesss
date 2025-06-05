@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.roleMiddleware = void 0;
+const db_1 = require("../database/db");
 const roleMiddleware = (allowedRoles) => {
-    return (req, res, next) => {
-        const user = req.user;
+    return async (req, res, next) => {
+        const user = await db_1.prisma.user.findUnique({
+            where: { phone: req.user.phone },
+        });
         if (!user || !user.role) {
             res.status(403).json({ message: "Forbidden: No user roles found" });
             return;

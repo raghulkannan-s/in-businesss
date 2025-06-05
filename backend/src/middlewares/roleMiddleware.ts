@@ -1,8 +1,11 @@
+import { prisma } from "../database/db";
 
 
 export const roleMiddleware = (allowedRoles: string[]) => {
-    return (req: any, res: any, next: any) => {
-        const user = req.user;
+    return async (req: any, res: any, next: any) => {
+        const user = await prisma.user.findUnique({
+            where: { phone: req.user.phone },
+        });
 
         if (!user || !user.role) {
             res.status(403).json({ message: "Forbidden: No user roles found" });

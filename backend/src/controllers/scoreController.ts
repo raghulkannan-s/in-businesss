@@ -46,6 +46,18 @@ export const updateScore = async (req: Request, res: Response) =>{
             where: { id: parsedId },
             data: { score: parsedScore }
         });
+        if(parsedScore < 0){
+            await prisma.user.update({
+                where: { id: parsedId },
+                data: { eligibility: false }
+            });
+        }
+        if(parsedScore >= 0){
+            await prisma.user.update({
+                where: { id: parsedId },
+                data: { eligibility: true }
+            });
+        }
         res.status(200).json({
             message: 'Score updated successfully',
             user: user

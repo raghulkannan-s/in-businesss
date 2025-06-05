@@ -3,9 +3,9 @@ const router = Router();
 
 import { promotionController, demotionController } from '../controllers/adminController';
 import { roleMiddleware } from '../middlewares/roleMiddleware';
-import { tokenVerify } from '../middlewares/tokenVerify';
+import { authenticate } from '../middlewares/auth.middleware';
 
-router.post("/promote/:phone/:role", tokenVerify, roleMiddleware(["admin"]), promotionController)
-router.post("/demote/:phone/:role", tokenVerify, roleMiddleware(["admin"]), demotionController)
+router.post("/promote/:id", authenticate, roleMiddleware(["admin"]), promotionController)
+router.post("/demote/:id", authenticate, roleMiddleware(["admin"]), demotionController)
 
 export default router;

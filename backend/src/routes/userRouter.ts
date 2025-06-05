@@ -1,13 +1,18 @@
 import { Router } from 'express';
 const router = Router();
 
-import { getAll, getAdmins, getManagers, getUsers } from '../controllers/userController';
+import { getAll, getAdmins, getManagers, getUsers, getUserById } from '../controllers/userController';
 import { roleMiddleware } from '../middlewares/roleMiddleware';
-import { tokenVerify } from '../middlewares/tokenVerify';
+import { authenticate } from '../middlewares/auth.middleware';
+import { eligibilityCheck } from '../middlewares/eligibilityCheck';
 
-router.get("/all", tokenVerify, roleMiddleware(["admin"]), getAll);
-router.get("/admins", tokenVerify, roleMiddleware(["admin"]), getAdmins);
-router.get("/managers", tokenVerify, roleMiddleware(["admin"]), getManagers);
-router.get("/users", tokenVerify, roleMiddleware(["admin"]), getUsers);
+
+router.get("/all", authenticate, roleMiddleware(["admin"]), getAll);
+router.get("/allAdmins", authenticate, roleMiddleware(["admin"]), getAdmins);
+router.get("/allManagers", authenticate, roleMiddleware(["admin"]), getManagers);
+router.get("/allUsers", authenticate, roleMiddleware(["admin"]), getUsers);
+
+router.get("/:id", authenticate, getUserById);
+
 
 export default router;
