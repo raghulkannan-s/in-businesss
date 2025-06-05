@@ -1,280 +1,130 @@
-# API Endpoints Documentation
+API ENDPOINTS DOCUMENTATION
+============================
 
-## 🔐 Authentication Routes
+## AUTHENTICATION ROUTES
 
-### Register New User
-```http
-POST /auth/register
-```
-**Request Body:**
-```json
-{
-  "name": "string",
-  "email": "string", 
-  "phone": "string",
-  "password": "string"
-}
-```
-**Response:** User object with JWT token
+### POST /auth/register
 
----
+- Method: POST
+- Body: { name, email, phone, password }
+- Description: Register a new user
+- Response: User object with JWT token
 
-### User Login
-```http
-POST /auth/login
-```
-**Request Body:**
-```json
-{
-  "phone": "string",
-  "password": "string"
-}
-```
-**Response:** User object with JWT token
+### POST /auth/login
 
----
+- Method: POST
+- Body: { phone, password }
+- Description: Login user
+- Response: User object with JWT token
 
-### User Logout
-```http
-POST /auth/logout
-```
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-**Response:** Success message
+### POST /auth/logout
+- Method: POST
+- Headers: Authorization: Bearer <token>
+- Description: Logout user
+- Response: Success message
 
----
+## ADMIN ROUTES
 
-## 👨‍💼 Admin Routes
+### POST /admin/promote/:phone/:role
 
-### Promote User Role
-```http
-POST /admin/promote/:phone/:role
-```
-**Parameters:**
-- `phone` (string) - User's phone number
-- `role` (string) - Role to assign
+- Method: POST
+- Params: phone (string), role (string)
+- Headers: Authorization: Bearer <token>
+- Middleware: tokenVerify, roleMiddleware(["admin"])
+- Description: Promote user to specified role
+- Response: Success message
 
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-**Middleware:** `tokenVerify`, `roleMiddleware(["admin"])`
+### POST /admin/demote/:phone/:role
 
-**Response:** Success message
+- Method: POST
+- Params: phone (string), role (string)
+- Headers: Authorization: Bearer <token>
+- Middleware: tokenVerify, roleMiddleware(["admin"])
+- Description: Demote user from specified role
+- Response: Success message
 
----
+## ELIGIBILITY ROUTES
 
-### Demote User Role
-```http
-POST /admin/demote/:phone/:role
-```
-**Parameters:**
-- `phone` (string) - User's phone number
-- `role` (string) - Role to remove
+### GET /eligibility
 
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-**Middleware:** `tokenVerify`, `roleMiddleware(["admin"])`
+- Method: GET
+- Headers: Authorization: Bearer <token>
+- Middleware: tokenVerify
+- Description: Get current user's eligibility status
+- Response: { message, eligibility, score }
 
-**Response:** Success message
+### PUT /eligibility/allow/:id
 
----
+- Method: PUT
+- Params: id (user ID)
+- Headers: Authorization: Bearer <token>
+- Middleware: tokenVerify, roleMiddleware(["admin"])
+- Description: Allow/approve user eligibility
+- Response: { message, eligibility, score }
 
-## ✅ Eligibility Routes
+### PUT /eligibility/block/:id
 
-### Get User Eligibility Status
-```http
-GET /eligibility
-```
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-**Middleware:** `tokenVerify`
+- Method: PUT
+- Params: id (user ID)
+- Headers: Authorization: Bearer <token>
+- Middleware: tokenVerify, roleMiddleware(["admin"])
+- Description: Block/deny user eligibility
+- Response: { message, eligibility, score }
 
-**Response:**
-```json
-{
-  "message": "string",
-  "eligibility": "boolean",
-  "score": "number"
-}
-```
+## PRODUCT ROUTES
 
----
+### POST /products
 
-### Approve User Eligibility
-```http
-PUT /eligibility/allow/:id
-```
-**Parameters:**
-- `id` (string) - User ID
+- Method: POST
+- Headers: Authorization: Bearer <token>
+- Body: { name, description, price, category, stock }
+- Middleware: tokenVerify, roleMiddleware(["admin"])
+- Description: Create a new product
+- Response: { message, product }
 
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-**Middleware:** `tokenVerify`, `roleMiddleware(["admin"])`
+### PUT /products/:id
 
-**Response:**
-```json
-{
-  "message": "string",
-  "eligibility": "boolean", 
-  "score": "number"
-}
-```
+- Method: PUT
+- Params: id (product ID)
+- Headers: Authorization: Bearer <token>
+- Body: { name, description, price, category, stock }
+- Middleware: tokenVerify, roleMiddleware(["admin"])
+- Description: Update existing product
+- Response: { message, product }
 
----
+### GET /products
 
-### Block User Eligibility
-```http
-PUT /eligibility/block/:id
-```
-**Parameters:**
-- `id` (string) - User ID
+- Method: GET
+- Description: Get all products (public)
+- Response: { message, products }
 
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-**Middleware:** `tokenVerify`, `roleMiddleware(["admin"])`
+### DELETE /products/:id
 
-**Response:**
-```json
-{
-  "message": "string",
-  "eligibility": "boolean",
-  "score": "number"
-}
-```
+- Method: DELETE
+- Params: id (product ID)
+- Headers: Authorization: Bearer <token>
+- Middleware: tokenVerify, roleMiddleware(["admin"])
+- Description: Delete a product
+- Response: { message }
 
----
+## MIDDLEWARE REQUIREMENTS
 
-## 📦 Product Routes
+### tokenVerify
 
-### Create New Product
-```http
-POST /products
-```
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-**Request Body:**
-```json
-{
-  "name": "string",
-  "description": "string",
-  "price": "number",
-  "category": "string",
-  "stock": "number"
-}
-```
-**Middleware:** `tokenVerify`, `roleMiddleware(["admin"])`
+- Required for protected routes
+- Validates JWT token from Authorization header
+- Adds user data to req.user
 
-**Response:**
-```json
-{
-  "message": "string",
-  "product": { ... }
-}
-```
+### roleMiddleware(roles)
 
----
+- Requires tokenVerify middleware first
+- Validates user has required role(s)
+- Example: roleMiddleware(["admin", "manager"])
 
-### Update Product
-```http
-PUT /products/:id
-```
-**Parameters:**
-- `id` (string) - Product ID
+## COMMON RESPONSE FORMATS
 
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-**Request Body:**
-```json
-{
-  "name": "string",
-  "description": "string", 
-  "price": "number",
-  "category": "string",
-  "stock": "number"
-}
-```
-**Middleware:** `tokenVerify`, `roleMiddleware(["admin"])`
+### Success Response
 
-**Response:**
-```json
-{
-  "message": "string",
-  "product": { ... }
-}
-```
-
----
-
-### Get All Products
-```http
-GET /products
-```
-**Public endpoint** - No authentication required
-
-**Response:**
-```json
-{
-  "message": "string",
-  "products": [ ... ]
-}
-```
-
----
-
-### Delete Product
-```http
-DELETE /products/:id
-```
-**Parameters:**
-- `id` (string) - Product ID
-
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-**Middleware:** `tokenVerify`, `roleMiddleware(["admin"])`
-
-**Response:**
-```json
-{
-  "message": "string"
-}
-```
-
----
-
-## 🛡️ Middleware Requirements
-
-### `tokenVerify`
-- **Purpose:** Validates JWT token from Authorization header
-- **Usage:** Required for all protected routes
-- **Effect:** Adds user data to `req.user`
-
-### `roleMiddleware(roles)`
-- **Purpose:** Validates user has required role(s)
-- **Prerequisite:** Requires `tokenVerify` middleware first
-- **Example:** `roleMiddleware(["admin", "manager"])`
-
----
-
-## 📋 Response Formats
-
-### ✅ Success Response
 ```json
 {
   "message": "Operation successful",
@@ -282,7 +132,8 @@ Authorization: Bearer <token>
 }
 ```
 
-### ❌ Error Response
+### Error Response
+
 ```json
 {
   "error": "Error message",
@@ -290,16 +141,12 @@ Authorization: Bearer <token>
 }
 ```
 
----
+## HTTP STATUS CODES
 
-## 🔢 HTTP Status Codes
-
-| Code | Status | Description |
-|------|--------|-------------|
-| `200` | OK | Request successful |
-| `201` | Created | Resource created successfully |
-| `400` | Bad Request | Invalid request data |
-| `401` | Unauthorized | Authentication required |
-| `403` | Forbidden | Insufficient permissions |
-| `404` | Not Found | Resource not found |
-| `500` | Internal Server Error | Server error occurred |
+- 200: Success
+- 201: Created
+- 400: Bad Request
+- 401: Unauthorized
+- 403: Forbidden
+- 404: Not Found
+- 500: Internal Server Error
