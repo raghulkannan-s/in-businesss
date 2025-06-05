@@ -12,7 +12,6 @@ const userRouter_1 = __importDefault(require("./routes/userRouter"));
 const authRouter_1 = __importDefault(require("./routes/authRouter"));
 const adminRouter_1 = __importDefault(require("./routes/adminRouter"));
 const productRouter_1 = __importDefault(require("./routes/productRouter"));
-const eligibilityRouter_1 = __importDefault(require("./routes/eligibilityRouter"));
 const scoreRouter_1 = __importDefault(require("./routes/scoreRouter"));
 app.get("/", (req, res) => {
     res.status(200).json({
@@ -24,6 +23,5 @@ app.use("/users", userRouter_1.default);
 app.use('/auth', authRouter_1.default);
 app.use("/admin", adminRouter_1.default);
 app.use("/products", productRouter_1.default);
-app.use('/eligibility', eligibilityRouter_1.default);
 app.use("/score", scoreRouter_1.default);
 exports.default = app;

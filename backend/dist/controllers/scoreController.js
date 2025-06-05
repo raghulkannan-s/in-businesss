@@ -28,7 +28,6 @@ exports.getScore = getScore;
 const updateScore = async (req, res) => {
     const { id } = req.params;
     const parsedId = parseInt(id);
-    console.log("ID:", parsedId, "Type:", typeof parsedId);
     if (!id || isNaN(parsedId)) {
         res.status(400).json({
             message: "A valid numeric ID is required"
@@ -43,13 +42,11 @@ const updateScore = async (req, res) => {
         });
         return;
     }
-    console.log("Score:", parsedScore, "Type:", typeof parsedScore);
     try {
         const user = await db_1.prisma.user.update({
             where: { id: parsedId },
             data: { score: parsedScore }
         });
-        console.log("User", user);
         res.status(200).json({
             message: 'Score updated successfully',
             user: user

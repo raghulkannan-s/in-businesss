@@ -30,9 +30,14 @@ const getEligibility = async (req, res) => {
 };
 exports.getEligibility = getEligibility;
 const allowUser = async (req, res) => {
-    const { phone } = req.params;
+    const { id } = req.params;
+    if (!id) {
+        res.status(400).json({ message: "User ID is required" });
+        return;
+    }
+    const parsedID = parseInt(id);
     const user = await db_1.prisma.user.update({
-        where: { phone },
+        where: { id: parsedID },
         data: { eligibility: true }
     });
     res.status(200).json({
@@ -43,9 +48,14 @@ const allowUser = async (req, res) => {
 };
 exports.allowUser = allowUser;
 const blockUser = async (req, res) => {
-    const { phone } = req.params;
+    const { id } = req.params;
+    if (!id) {
+        res.status(400).json({ message: "User ID is required" });
+        return;
+    }
+    const parsedID = parseInt(id);
     const user = await db_1.prisma.user.update({
-        where: { phone },
+        where: { id: parsedID },
         data: { eligibility: false }
     });
     res.status(200).json({
