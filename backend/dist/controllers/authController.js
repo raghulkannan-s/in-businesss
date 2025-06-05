@@ -67,11 +67,18 @@ const loginController = async (req, res) => {
             });
             return;
         }
+        if (user.eligibility == false) {
+            res.status(403).json({
+                message: "User is not eligible"
+            });
+            return;
+        }
         const token = jsonwebtoken_1.default.sign({
             userId: user.id,
             role: user.role,
             name: user.name,
-            phone: user.phone
+            phone: user.phone,
+            eligibility: user.eligibility
         }, process.env.JWT_SECRET, { expiresIn: '7d' });
         res.json({
             message: "Login successful",
@@ -79,7 +86,8 @@ const loginController = async (req, res) => {
             user: {
                 name: user.name,
                 email: user.email,
-                phone: user.phone
+                phone: user.phone,
+                eligibility: user.eligibility
             }
         });
     }

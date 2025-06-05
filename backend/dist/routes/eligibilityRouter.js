@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const router = (0, express_1.Router)();
+const eligibilityController_1 = require("../controllers/eligibilityController");
+const tokenVerify_1 = require("../middlewares/tokenVerify");
+const roleMiddleware_1 = require("../middlewares/roleMiddleware");
+router.get("/get", tokenVerify_1.tokenVerify, eligibilityController_1.getEligibility);
+router.post("/allow/:phone", tokenVerify_1.tokenVerify, (0, roleMiddleware_1.roleMiddleware)(["admin"]), eligibilityController_1.allowUser);
+router.post("/block/:phone", tokenVerify_1.tokenVerify, (0, roleMiddleware_1.roleMiddleware)(["admin"]), eligibilityController_1.blockUser);
+exports.default = router;

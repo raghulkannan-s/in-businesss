@@ -63,11 +63,18 @@ export const loginController = async (req: Request, res: Response) => {
             });
             return;
         }
+        if( user.eligibility == false) {
+            res.status(403).json({
+                message: "User is not eligible"
+            });
+            return;
+        }
         const token = jwt.sign({
             userId: user.id,
             role: user.role,
             name: user.name,
-            phone: user.phone
+            phone: user.phone,
+            eligibility: user.eligibility
         }, process.env.JWT_SECRET, { expiresIn: '7d' });
         res.json({
             message: "Login successful",
@@ -75,7 +82,8 @@ export const loginController = async (req: Request, res: Response) => {
             user: {
                 name: user.name,
                 email: user.email,
-                phone: user.phone
+                phone: user.phone,
+                eligibility: user.eligibility
             }
         });
     } catch (error) {
