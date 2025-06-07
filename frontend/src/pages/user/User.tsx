@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import ScoreUpdater from "../../components/ScoreUpdater";
+import ScoreUpdater from "../../components/functional/ScoreUpdater";
 import { useAuth } from "../../hooks/useAuth";
-import RoleChanger from "../../components/Rolechanger";
+import RoleChanger from "../../components/functional/Rolechanger";
 
 interface UserData {
     id: string;
@@ -73,7 +73,7 @@ const User = () => {
 
     if (loading) {
         return (
-            <div className="ml-64 min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+            <div className=" min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="relative">
                         <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
@@ -88,7 +88,7 @@ const User = () => {
 
     if (error || !selectedUser) {
         return (
-            <div className="ml-64 min-h-screen bg-gradient-to-br from-red-50 via-white to-pink-50 flex items-center justify-center">
+            <div className=" min-h-screen bg-gradient-to-br from-red-50 via-white to-pink-50 flex items-center justify-center">
                 <div className="text-center max-w-md">
                     <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,7 +109,7 @@ const User = () => {
     }
 
     return (
-        <div className="ml-64 min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 px-6">
+        <div className=" min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 px-6">
             <div className="max-w-7xl mx-auto">
                 {/* Back Button */}
                 <div className="mb-6">

@@ -35,6 +35,8 @@ model Product {
   stock       Int       @default(0)
   imageUrl    String
   category    String
+  createdById Int
+  updatedById Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime? @updatedAt
 }

@@ -83,8 +83,9 @@ const Users = () => {
          setUsers([]);
          console.error("Failed to fetch users:", error);
         });
-  }, [csrfToken]);    return (
-        <div className="ml-80 min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-8">
+  }, [csrfToken]);
+  return (
+        <div className=" min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header Section */}
                 <div className="mb-8">
@@ -282,9 +283,9 @@ const Users = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">                  {Array.isArray(filteredUsers) && filteredUsers.length > 0 ? (
+                <tbody className="divide-y divide-gray-100 bg-white">{Array.isArray(filteredUsers) && filteredUsers.length > 0 ? (
                     filteredUsers.map((user) => (
-                      <tr 
+                      <tr
                         key={user.id} 
                         className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer group" 
                         onClick={() => getUserById(user.id)}

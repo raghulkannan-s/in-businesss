@@ -12,7 +12,8 @@ const createProduct = async (req, res) => {
                 price: parseFloat(price),
                 category: category,
                 stock: parseInt(stock),
-                imageUrl: imageUrl
+                imageUrl: imageUrl,
+                createdById: req.user.id
             }
         });
         res.status(201).json({
@@ -27,8 +28,7 @@ const createProduct = async (req, res) => {
 exports.createProduct = createProduct;
 const updateProduct = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { name, description, price, category, stock, imageUrl } = req.body;
+        const { id, name, description, price, category, stock, imageUrl } = req.body;
         const product = await db_1.prisma.product.update({
             where: { id: parseInt(id) },
             data: {
@@ -37,7 +37,9 @@ const updateProduct = async (req, res) => {
                 price: parseFloat(price),
                 category: category,
                 stock: parseInt(stock),
-                imageUrl: imageUrl
+                imageUrl: imageUrl,
+                updatedAt: new Date(),
+                updatedById: req.user.id
             }
         });
         res.status(200).json({

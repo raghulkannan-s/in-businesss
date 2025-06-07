@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import Spinner from './Spinner';
-import { useAuth } from '../hooks/useAuth';
+import Spinner from '../ui/Spinner';
+import { useAuth } from '../../hooks/useAuth';
 
 const RoleChanger = ({ id }: { id: string }) => {
     const [loading, setLoading] = useState(false);

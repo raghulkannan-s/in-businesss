@@ -4,7 +4,6 @@ import { prisma } from '../database/db';
 export const createProduct = async (req: Request, res: Response) => {
     try {
         const { name, description, price, category, stock, imageUrl } = req.body;
-
         const product = await prisma.product.create({
             data: {
                 name : name,
@@ -12,7 +11,8 @@ export const createProduct = async (req: Request, res: Response) => {
                 price : parseFloat(price),
                 category : category,
                 stock: parseInt(stock),
-                imageUrl: imageUrl
+                imageUrl: imageUrl,
+                createdById: (req as any).user.id
             }
         });
 
@@ -27,8 +27,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const updateProduct = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
-        const { name, description, price, category, stock, imageUrl } = req.body;
+        const { id, name, description, price, category, stock, imageUrl } = req.body;
 
         const product = await prisma.product.update({
             where: { id: parseInt(id) },
@@ -38,7 +37,9 @@ export const updateProduct = async (req: Request, res: Response) => {
                 price : parseFloat(price),
                 category : category,
                 stock: parseInt(stock),
-                imageUrl: imageUrl
+                imageUrl: imageUrl,
+                updatedAt: new Date(),
+                updatedById: (req as any).user.id
             }
         });
 
