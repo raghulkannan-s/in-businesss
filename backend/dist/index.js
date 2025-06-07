@@ -8,7 +8,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const db_1 = require("./database/db");
 dotenv_1.default.config();
 const PORT = process.env.PORT || 3000;
-(0, db_1.connectToDatabase)();
+(0, db_1.connectDB)();
 app_1.default.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

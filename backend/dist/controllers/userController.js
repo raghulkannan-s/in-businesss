@@ -17,7 +17,6 @@ const getAll = async (req, res) => {
                 updatedAt: true,
             },
         });
-        console.log("Fetched all users:", users);
         res.json(users);
     }
     catch (error) {
@@ -97,7 +96,6 @@ const getUsers = async (req, res) => {
 exports.getUsers = getUsers;
 const getUserById = async (req, res) => {
     const { id } = req.params;
-    console.log("Fetching user with ID:", id);
     try {
         const user = await db_1.prisma.user.findUnique({
             where: { id: parseInt(id) },

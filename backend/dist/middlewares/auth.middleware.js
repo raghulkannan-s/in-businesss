@@ -7,7 +7,6 @@ exports.authenticate = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const authenticate = (req, res, next) => {
     const token = req.cookies.accessToken;
-    console.log("Token received:", token, req.method, req.url);
     if (!token) {
         res.status(401).json({ message: "Unauthorized" });
         return;

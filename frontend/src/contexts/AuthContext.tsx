@@ -16,8 +16,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   loading: boolean;
   isAuthenticated: boolean;
-  csrfToken: string;
-}
+  csrfToken: string;}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -30,7 +29,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [csrfToken, setCsrfToken] = useState<string>('');
 
-  useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
         const response = await fetch(import.meta.env.VITE_API_URL +'/api/csrf-token', {
@@ -39,13 +37,15 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
         const data = await response.json();
         setCsrfToken(data.csrfToken);
+        return data.csrfToken;
       } catch (error) {
         console.error('Error fetching CSRF token:', error);
       }
     };
 
-    fetchCsrfToken();
-  }, []);
+    useEffect(() => {
+      fetchCsrfToken();
+    }, [])
 
   const fetchMe = async () => {
     try {
@@ -96,13 +96,17 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     if (!res.ok) throw new Error("Register failed");
-    await fetchMe(); // Refresh user
+    await fetchMe();
   };
 
   const logout = async () => {
     await fetch(import.meta.env.VITE_API_URL + "/auth/logout", {
       method: "POST",
-      credentials: "include",
+        credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        'X-CSRF-Token': csrfToken
+      },
     });
     setUser(null);
   };

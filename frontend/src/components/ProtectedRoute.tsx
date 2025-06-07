@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
     const hasRequiredRole = requiredRole.includes(user.role);
     if (!hasRequiredRole) {
       return (
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="ml-64 min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
             <p className="text-gray-600">You don't have permission to access this page.</p>

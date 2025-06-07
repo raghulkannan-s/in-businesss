@@ -13,9 +13,10 @@ export const validateInput = (req: Request, res: Response, next: NextFunction) =
 
   for (const pattern of dangerousPatterns) {
     if (pattern.test(body)) {
-      return res.status(400).json({
+      res.status(400).json({
         message: 'Invalid input detected'
       });
+      return;
     }
   }
   next();
@@ -25,16 +26,17 @@ export const validateInput = (req: Request, res: Response, next: NextFunction) =
 export const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
   // Skip CSRF for GET requests
   if (req.method === 'GET') {
-    return next();
+    next();
   }
   
   const token = req.headers['x-csrf-token'] || req.headers['csrf-token'];
   const expectedToken = req.headers['authorization']?.split(' ')[1]; // Use JWT as CSRF token
   
   if (!token || !expectedToken) {
-    return res.status(403).json({
+    res.status(403).json({
       message: 'CSRF token missing'
     });
+    return;
   }
   
   next();

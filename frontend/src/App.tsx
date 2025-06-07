@@ -6,7 +6,7 @@ import User from "./pages/user/User"
 
 import Login from "./pages/auth/Login"
 import Register from "./pages/auth/Register"
-import Account from "./pages/Account"
+import Account from "./pages/user/Account"
 
 import Sidebar from "./layout/Sidebar"
 import ErrorBoundary from "./components/ErrorBoundary"
