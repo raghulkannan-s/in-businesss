@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteProduct = exports.getProducts = exports.updateProduct = exports.createProduct = void 0;
+exports.deleteProduct = exports.getProducts = exports.getOneProduct = exports.updateProduct = exports.createProduct = void 0;
 const db_1 = require("../database/db");
 const createProduct = async (req, res) => {
     try {
@@ -13,7 +13,7 @@ const createProduct = async (req, res) => {
                 category: category,
                 stock: parseInt(stock),
                 imageUrl: imageUrl,
-                createdById: req.user.id
+                createdByPhone: req.user.phone
             }
         });
         res.status(201).json({
@@ -39,7 +39,7 @@ const updateProduct = async (req, res) => {
                 stock: parseInt(stock),
                 imageUrl: imageUrl,
                 updatedAt: new Date(),
-                updatedById: req.user.id
+                updatedByPhone: req.user.phone
             }
         });
         res.status(200).json({
@@ -52,6 +52,26 @@ const updateProduct = async (req, res) => {
     }
 };
 exports.updateProduct = updateProduct;
+const getOneProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const product = await db_1.prisma.product.findUnique({
+            where: { id: parseInt(id) }
+        });
+        if (!product) {
+            res.status(404).json({ error: 'Product not found' });
+            return;
+        }
+        res.status(200).json({
+            message: 'Product retrieved successfully',
+            product
+        });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve product' });
+    }
+};
+exports.getOneProduct = getOneProduct;
 const getProducts = async (req, res) => {
     try {
         const products = await db_1.prisma.product.findMany({
@@ -69,7 +89,7 @@ const getProducts = async (req, res) => {
 exports.getProducts = getProducts;
 const deleteProduct = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { id } = req.body;
         await db_1.prisma.product.delete({
             where: { id: parseInt(id) }
         });

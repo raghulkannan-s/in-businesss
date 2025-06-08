@@ -17,7 +17,7 @@ interface UserData {
 }
 
 const User = () => {
-    const { id } = useParams<{ id: string }>();
+    const { id, phone } = useParams<{ id?: string; phone?: string }>();
     const navigate = useNavigate();
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -26,14 +26,21 @@ const User = () => {
 
     useEffect(() => {
         const fetchUser = async () => {
-            if (!id) {
-                setError("User ID not provided");
+            if (!id && !phone) {
+                setError("User ID or phone number not provided");
                 setLoading(false);
                 return;
             }
 
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/user/${id}`, {
+                let url = `${import.meta.env.VITE_API_URL}/user/`;
+                if (id) {
+                    url += id;
+                } else if (phone) {
+                    url += `phone/${phone}`;
+                }
+
+                const response = await fetch(url, {
                     method: "GET",
                     credentials: "include",
                     headers: {
@@ -59,21 +66,20 @@ const User = () => {
         if (csrfToken) {
             fetchUser();
         }
-    }, [id, csrfToken]);
+    }, [id, phone, csrfToken]);
 
     const handleScoreUpdate = (newScore: number) => {
         setSelectedUser((prev) => prev ? { ...prev, score: newScore } : null);
     };
 
     const getScoreColor = (score: number) => {
-    if (score > 0) return 'text-green-700 bg-green-100 border-green-300';
-    if (score === 0) return 'text-blue-700 bg-blue-100 border-blue-300';
-    return 'text-red-700 bg-red-100 border-red-300';
-  };
-
+        if (score > 0) return 'text-green-700 bg-green-100 border-green-300';
+        if (score === 0) return 'text-blue-700 bg-blue-100 border-blue-300';
+        return 'text-red-700 bg-red-100 border-red-300';
+    };
     if (loading) {
         return (
-            <div className=" min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="relative">
                         <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
@@ -85,10 +91,9 @@ const User = () => {
             </div>
         );
     }
-
-    if (error || !selectedUser) {
+        if (error || !selectedUser) {
         return (
-            <div className=" min-h-screen bg-gradient-to-br from-red-50 via-white to-pink-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-pink-50 flex items-center justify-center">
                 <div className="text-center max-w-md">
                     <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,10 +111,8 @@ const User = () => {
                 </div>
             </div>
         );
-    }
-
-    return (
-        <div className=" min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 px-6">
+    }    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 px-6">
             <div className="max-w-7xl mx-auto">
                 {/* Back Button */}
                 <div className="mb-6">
@@ -131,8 +134,8 @@ const User = () => {
                             {/* User Info */}
                             <div className="text-center lg:text-left flex-1">
                                 <div className="flex items-center justify-center lg:justify-start gap-4">
-                                    <h1 className=" text-4xl lg:text-5xl font-bold text-white mb-3">{selectedUser.name || 'Anonymous User'}</h1>
-                                    <div className={` w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
+                                    <h1 className="text-4xl lg:text-5xl font-bold text-white mb-3">{selectedUser.name || 'Anonymous User'}</h1>
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
                                         selectedUser.eligibility ? 'bg-green-500' : 'bg-red-500'
                                     }`}>
                                         {selectedUser.eligibility ? '✓' : '✗'}
@@ -159,9 +162,7 @@ const User = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-
-                {/* Content Grid */}
+                </div>                {/* Content Grid */}
                 <div className="grid lg:grid-cols-3 gap-8">
                     {/* Personal Information */}
                     <div className="lg:col-span-2 space-y-6">
@@ -248,7 +249,7 @@ const User = () => {
                                 </div>
                                 <h2 className="text-2xl font-bold text-gray-800">Score Management</h2>
                             </div>
-                            
+
                             <ScoreUpdater 
                                 userId={selectedUser.id}
                                 currentScore={selectedUser.score} 
@@ -256,8 +257,6 @@ const User = () => {
                             />
                         </div>
                     </div>
-
-                    {/* Sidebar */}
                     <div className="space-y-6">
                         {/* Quick Stats */}
                         <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -280,7 +279,6 @@ const User = () => {
                             </div>
                         </div>
 
-                        {/* Role Management */}
                         <RoleChanger id={selectedUser.id} />
                     </div>
                 </div>

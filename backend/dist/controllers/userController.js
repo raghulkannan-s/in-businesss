@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserById = exports.getUsers = exports.getManagers = exports.getAdmins = exports.getAll = void 0;
+exports.getUserByPhone = exports.getUserById = exports.getAll = void 0;
 const db_1 = require("../database/db");
 const getAll = async (req, res) => {
     try {
@@ -25,75 +25,6 @@ const getAll = async (req, res) => {
     }
 };
 exports.getAll = getAll;
-const getAdmins = async (req, res) => {
-    try {
-        const admins = await db_1.prisma.user.findMany({
-            where: { role: "admin" },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                score: true,
-                phone: true,
-                role: true,
-                eligibility: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-        });
-        res.json(admins);
-    }
-    catch (error) {
-        res.status(500).json({ error: "Failed to fetch admins" });
-    }
-};
-exports.getAdmins = getAdmins;
-const getManagers = async (req, res) => {
-    try {
-        const managers = await db_1.prisma.user.findMany({
-            where: { role: "manager" },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                score: true,
-                phone: true,
-                role: true,
-                eligibility: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-        });
-        res.json(managers);
-    }
-    catch (error) {
-        res.status(500).json({ error: "Failed to fetch managers" });
-    }
-};
-exports.getManagers = getManagers;
-const getUsers = async (req, res) => {
-    try {
-        const users = await db_1.prisma.user.findMany({
-            where: { role: "user" },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                score: true,
-                phone: true,
-                role: true,
-                eligibility: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-        });
-        res.json(users);
-    }
-    catch (error) {
-        res.status(500).json({ error: "Failed to fetch users" });
-    }
-};
-exports.getUsers = getUsers;
 const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
@@ -122,3 +53,31 @@ const getUserById = async (req, res) => {
     }
 };
 exports.getUserById = getUserById;
+const getUserByPhone = async (req, res) => {
+    const { phone } = req.params;
+    try {
+        const user = await db_1.prisma.user.findUnique({
+            where: { phone: phone },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                score: true,
+                phone: true,
+                role: true,
+                eligibility: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+        if (!user) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+        res.json(user);
+    }
+    catch (error) {
+        res.status(500).json({ error: "Failed to fetch user" });
+    }
+};
+exports.getUserByPhone = getUserByPhone;

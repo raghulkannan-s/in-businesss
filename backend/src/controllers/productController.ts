@@ -12,7 +12,7 @@ export const createProduct = async (req: Request, res: Response) => {
                 category : category,
                 stock: parseInt(stock),
                 imageUrl: imageUrl,
-                createdById: (req as any).user.id
+                createdByPhone: (req as any).user.phone
             }
         });
 
@@ -39,7 +39,7 @@ export const updateProduct = async (req: Request, res: Response) => {
                 stock: parseInt(stock),
                 imageUrl: imageUrl,
                 updatedAt: new Date(),
-                updatedById: (req as any).user.id
+                updatedByPhone: (req as any).user.phone
             }
         });
 
@@ -49,6 +49,27 @@ export const updateProduct = async (req: Request, res: Response) => {
         });
     } catch (error) {
         res.status(500).json({ error: 'Failed to update product' });
+    }
+};
+
+export const getOneProduct = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const product = await prisma.product.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        if (!product) {
+            res.status(404).json({ error: 'Product not found' });
+            return;
+        }
+
+        res.status(200).json({
+            message: 'Product retrieved successfully',
+            product
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve product' });
     }
 };
 
@@ -69,7 +90,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
 export const deleteProduct = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = req.body;
 
         await prisma.product.delete({
             where: { id: parseInt(id) }

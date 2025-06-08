@@ -286,13 +286,13 @@ const Users = () => {
                 <tbody className="divide-y divide-gray-100 bg-white">{Array.isArray(filteredUsers) && filteredUsers.length > 0 ? (
                     filteredUsers.map((user) => (
                       <tr
-                        key={user.id} 
+                        key={user.id}
                         className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer group" 
                         onClick={() => getUserById(user.id)}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg group-hover:scale-110 transition-transform">
+                            <div className="w-10 h-10 bg-blue-800 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg group-hover:scale-110 transition-transform">
                               {user.id}
                             </div>
                           </div>
@@ -326,9 +326,8 @@ const Users = () => {
                               {user.score}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {user.score >= 80 ? 'Excellent' :
-                               user.score >= 60 ? 'Good' :
-                               user.score >= 40 ? 'Average' : 'Poor'}
+                              {user.score > 0 ? 'Excellent' :
+                               user.score == 0 ? 'Good' : 'Poor'}
                             </div>
                           </div>
                         </td>

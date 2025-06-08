@@ -7,8 +7,10 @@ import User from "./pages/user/User"
 import Login from "./pages/auth/Login"
 import Register from "./pages/auth/Register"
 import Account from "./pages/user/Account"
+
 import Products from "./pages/product/Products"
 import Product from "./pages/product/Product"
+import CreateProduct from "./pages/product/createProduct"
 
 import Layout from "./layout/Layout"
 import ErrorBoundary from "./components/secureRoutes//ErrorBoundary"
@@ -37,6 +39,11 @@ function App() {
                 <User />
               </ProtectedRoute>
             } />
+            <Route path="/user/phone/:phone" element={
+              <ProtectedRoute requiredRole={['admin']}>
+                <User />
+              </ProtectedRoute>
+            } />
 
             <Route path="/account" element={
               <PublicRoute>
@@ -52,6 +59,11 @@ function App() {
               <PublicRoute>
                 <Products />
               </PublicRoute>
+            } />
+            <Route path="/product/create" element={
+              <ProtectedRoute requiredRole={['admin']}>
+                <CreateProduct />
+              </ProtectedRoute>
             } />
 
           </Routes>

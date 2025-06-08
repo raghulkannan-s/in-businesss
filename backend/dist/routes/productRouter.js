@@ -9,4 +9,5 @@ router.get("/getAll", auth_middleware_1.authenticate, productController_1.getPro
 router.post("/create", auth_middleware_1.authenticate, (0, roleMiddleware_1.roleMiddleware)(["admin"]), productController_1.createProduct);
 router.put("/update", auth_middleware_1.authenticate, (0, roleMiddleware_1.roleMiddleware)(["admin"]), productController_1.updateProduct);
 router.delete("/delete", auth_middleware_1.authenticate, (0, roleMiddleware_1.roleMiddleware)(["admin"]), productController_1.deleteProduct);
+router.get("/:id", auth_middleware_1.authenticate, productController_1.getOneProduct);
 exports.default = router;

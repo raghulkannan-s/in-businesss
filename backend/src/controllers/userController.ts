@@ -23,77 +23,37 @@ export const getAll = async (req: Request, res: Response) => {
     }
 };
 
-export const getAdmins = async (req: Request, res: Response) => {
-    try {
-        const admins = await prisma.user.findMany({
-            where: { role: "admin" },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                score: true,
-                phone: true,
-                role: true,
-                eligibility: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-        });
-        res.json(admins);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to fetch admins" });
-    }
-};
-
-export const getManagers = async (req: Request, res: Response) => {
-    try {
-        const managers = await prisma.user.findMany({
-            where: { role: "manager" },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                score: true,
-                phone: true,
-                role: true,
-                eligibility: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-        });
-        res.json(managers);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to fetch managers" });
-    }
-};
-
-export const getUsers = async (req: Request, res: Response) => {
-    try {
-        const users = await prisma.user.findMany({
-            where: { role: "user" },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                score: true,
-                phone: true,
-                role: true,
-                eligibility: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-        });
-        res.json(users);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to fetch users" });
-    }
-};
-
 export const getUserById = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
         const user = await prisma.user.findUnique({
             where: { id: parseInt(id) },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                score: true,
+                phone: true,
+                role: true,
+                eligibility: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+        if (!user) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch user" });
+    }
+};
+export const getUserByPhone = async (req: Request, res: Response) => {
+    const { phone } = req.params;
+    try {
+        const user = await prisma.user.findUnique({
+            where: { phone: phone },
             select: {
                 id: true,
                 email: true,
