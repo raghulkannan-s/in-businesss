@@ -225,7 +225,7 @@ export default function Product() {
               <div className="flex justify-between items-center p-4 bg-blue-100 rounded-lg">
                 <span className="text-gray-600 font-medium">Created</span>
                 <span className="font-semibold text-gray-800">
-                  {new Date(product.createdAt).toLocaleDateString()}
+                  {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A'}
                 </span>
               </div>
               

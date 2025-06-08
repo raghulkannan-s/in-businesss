@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
     const [health, setHealth] = useState<{ status?: string; message?: string }>({});
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!user) {
+            navigate("/login");
+        }
+    }, [user]);
 
     useEffect(() => {
         const fetchHealth = async () => {

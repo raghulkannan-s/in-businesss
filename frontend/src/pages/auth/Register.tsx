@@ -46,14 +46,16 @@ const Register = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="bg-indigo-600 p-3 rounded-full">
+              <div className="bg-indigo-600 h-15 w-15 p-3 flex items-center justify-center m-3 rounded-full">
                 <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
+            <div className='flex flex-col items-center justify-center'>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
+              <p className="text-gray-600">Welcome to IN APP</p>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
-            <p className="text-gray-600">Welcome to IN APP</p>
+            </div>
           </div>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
