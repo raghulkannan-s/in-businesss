@@ -35,10 +35,23 @@ const authLimiter = (0, express_rate_limit_1.default)({
 const csrfProtection = (0, csurf_1.default)({ cookie: true });
 app.use(csrfProtection);
 app.use((0, cors_1.default)({
-    origin: "http://localhost:5173",
+    origin: [
+        "http://localhost:5173",
+        "http://localhost:8081",
+        "exp://192.168.1.35:8081"
+    ],
     credentials: true,
     optionsSuccessStatus: 200,
 }));
+// Apply CSRF protection conditionally
+app.use((req, res, next) => {
+    // Skip CSRF for mobile app requests
+    if (req.headers['user-agent']?.includes('Expo') ||
+        req.headers.origin?.includes('192.168.141.168')) {
+        return next();
+    }
+    return csrfProtection(req, res, next);
+});
 const userRouter_1 = __importDefault(require("./routes/userRouter"));
 const authRouter_1 = __importDefault(require("./routes/authRouter"));
 const adminRouter_1 = __importDefault(require("./routes/adminRouter"));

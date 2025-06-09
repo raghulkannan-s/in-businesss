@@ -106,27 +106,31 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { phone, password } = req.body;
-
     if (!phone || !password) {
       res.status(400).json({ message: "Phone and password are required" });
       return;
     }
-
+    console.log("Login attempt for phone:", phone, " password:", password);
     const user = await prisma.user.findUnique({ where: { phone: phone } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       res.status(400).json({ message: "Invalid credentials" });
       return;
     }
-    
+    console.log("User found:", user);
+
     const accessToken = generateAccessToken(user.phone);
     const refreshToken = generateRefreshToken(user.phone);
     const hashedRefreshToken = await hashToken(refreshToken);
+
+    console.log("Generated tokens for user:", user.phone);
 
     await prisma.user.update({
       where: { id: user.id },
       data: { refreshToken: hashedRefreshToken },
     });
 
+    console.log("Updated user with hashed refresh token:", user.phone);
+  
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -146,6 +150,7 @@ export const login = async (req: Request, res: Response) => {
       name: user.name,
       email: user.email
     });
+    console.log("Login successful for user:", user.phone);
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ 

@@ -98,18 +98,22 @@ const login = async (req, res) => {
             res.status(400).json({ message: "Phone and password are required" });
             return;
         }
+        console.log("Login attempt for phone:", phone, " password:", password);
         const user = await db_1.prisma.user.findUnique({ where: { phone: phone } });
         if (!user || !(await bcryptjs_1.default.compare(password, user.password))) {
             res.status(400).json({ message: "Invalid credentials" });
             return;
         }
+        console.log("User found:", user);
         const accessToken = (0, jwt_1.generateAccessToken)(user.phone);
         const refreshToken = (0, jwt_1.generateRefreshToken)(user.phone);
         const hashedRefreshToken = await (0, hash_1.hashToken)(refreshToken);
+        console.log("Generated tokens for user:", user.phone);
         await db_1.prisma.user.update({
             where: { id: user.id },
             data: { refreshToken: hashedRefreshToken },
         });
+        console.log("Updated user with hashed refresh token:", user.phone);
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -127,6 +131,7 @@ const login = async (req, res) => {
             name: user.name,
             email: user.email
         });
+        console.log("Login successful for user:", user.phone);
     }
     catch (error) {
         console.error("Login error:", error);
