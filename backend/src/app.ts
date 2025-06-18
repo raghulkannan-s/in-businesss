@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -51,22 +51,6 @@ app.use(
 
 const csrfMiddleware = csrf({ cookie: true });
 
-
-const isMobile = (req) =>
-  req.headers['user-agent']?.includes('okhttp') || req.headers['authorization'];
-
-const apiRouter = express.Router();
-
-apiRouter.use((req, res, next) => {
-  if (isMobile(req)) {
-    return bearerAuthMiddleware(req, res, next);
-  } else {
-    return csrfMiddleware(req, res, () => {
-      return cookieSessionAuthMiddleware(req, res, next);
-    });
-  }
-});
-
 import userRouter from "./routes/userRouter";
 import authRouter from "./routes/authRouter";
 import adminRouter from "./routes/adminRouter";
@@ -80,7 +64,21 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-app.get("/api/csrf-token", (req: Request, res: Response) => {
+const isMobile = (req: Request) => {
+  const appTypeHeader = req.headers['x-app-type'];
+  return appTypeHeader === 'mobile'
+};
+
+app.get("/api/csrf-token", csrfMiddleware, (req: Request, res: Response) => {
+  if (isMobile(req)) {
+    res.status(200).json({
+      status: "ok",
+      message: "Mobile client - CSRF not required",
+      csrfToken: null,
+    });
+    return;
+  }
+
   res.status(200).json({
     status: "ok",
     message: "IN APP API is working",

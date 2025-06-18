@@ -20,7 +20,7 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use((0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // limit each IP to 100 requests per windowMs
+    max: 100, // limit each IP to 100 requests per windowMs
     standardHeaders: true,
     legacyHeaders: false,
     message: "Too many requests from this IP, please try again later.",
@@ -32,8 +32,6 @@ const authLimiter = (0, express_rate_limit_1.default)({
     legacyHeaders: false,
     message: "Too many auth attempts from this IP, try again later.",
 });
-const csrfProtection = (0, csurf_1.default)({ cookie: true });
-app.use(csrfProtection);
 app.use((0, cors_1.default)({
     origin: [
         "http://localhost:5173",
@@ -43,15 +41,7 @@ app.use((0, cors_1.default)({
     credentials: true,
     optionsSuccessStatus: 200,
 }));
-// Apply CSRF protection conditionally
-app.use((req, res, next) => {
-    // Skip CSRF for mobile app requests
-    if (req.headers['user-agent']?.includes('Expo') ||
-        req.headers.origin?.includes('192.168.141.168')) {
-        return next();
-    }
-    return csrfProtection(req, res, next);
-});
+const csrfMiddleware = (0, csurf_1.default)({ cookie: true });
 const userRouter_1 = __importDefault(require("./routes/userRouter"));
 const authRouter_1 = __importDefault(require("./routes/authRouter"));
 const adminRouter_1 = __importDefault(require("./routes/adminRouter"));
@@ -63,7 +53,19 @@ app.get("/", (req, res) => {
         message: "IN APP API is working",
     });
 });
-app.get("/api/csrf-token", (req, res) => {
+const isMobile = (req) => {
+    const appTypeHeader = req.headers['x-app-type'];
+    return appTypeHeader === 'mobile';
+};
+app.get("/api/csrf-token", csrfMiddleware, (req, res) => {
+    if (isMobile(req)) {
+        res.status(200).json({
+            status: "ok",
+            message: "Mobile client - CSRF not required",
+            csrfToken: null,
+        });
+        return;
+    }
     res.status(200).json({
         status: "ok",
         message: "IN APP API is working",

@@ -12,15 +12,8 @@ export const prisma =
         url: process.env.DATABASE_URL,
       },
     },
-    log:
-      process.env.NODE_ENV === "development"
-        ? ["query", "error", "warn"]
-        : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
-
-// Connection management functions
 export const connectDB = async () => {
   try {
     await prisma.$connect();
@@ -40,7 +33,6 @@ export const disconnectDB = async () => {
   }
 };
 
-// Graceful shutdown
 process.on("beforeExit", async () => {
   await disconnectDB();
 });
