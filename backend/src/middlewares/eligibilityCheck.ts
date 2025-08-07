@@ -4,7 +4,8 @@ import { prisma } from '../database/db';
 
 export const eligibilityCheck = async(req: Request, res: Response, next: NextFunction) => {
 
-    const user = await prisma.user.findUnique({
+    try{
+        const user = await prisma.user.findUnique({
         where: {
             phone: (req as any).user.phone
         }
@@ -24,4 +25,11 @@ export const eligibilityCheck = async(req: Request, res: Response, next: NextFun
         });
         return;
     }
-};
+    }
+    catch (error) {
+        console.error("Error in eligibilityCheck middleware:", error);
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
+}

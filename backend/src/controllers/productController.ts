@@ -30,7 +30,7 @@ export const updateProduct = async (req: Request, res: Response) => {
         const { id, name, description, price, category, stock, imageUrl } = req.body;
 
         const product = await prisma.product.update({
-            where: { id: parseInt(id) },
+            where: { id: id },
             data: {
                 name : name,
                 description : description,
@@ -56,7 +56,7 @@ export const getOneProduct = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const product = await prisma.product.findUnique({
-            where: { id: parseInt(id) }
+            where: { id: id }
         });
 
         if (!product) {
@@ -93,7 +93,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
         const { id } = req.body;
 
         await prisma.product.delete({
-            where: { id: parseInt(id) }
+            where: { id: id }
         });
 
         res.status(200).json({

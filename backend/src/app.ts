@@ -1,22 +1,9 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
-import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import cookieParser from "cookie-parser";
-import csrf from "csurf";
 
 const app = express();
 
-app.use(
-  helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
-  })
-);
-app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
-app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true }));
-app.use(helmet.permittedCrossDomainPolicies());
-
-app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 
 app.use(
@@ -37,19 +24,17 @@ const authLimiter = rateLimit({
   message: "Too many auth attempts from this IP, try again later.",
 });
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const MOBILE_URL = process.env.MOBILE_URL || "exp://localhost:8081";
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:8081",
-      "exp://192.168.1.35:8081"
-    ],
+    origin: [FRONTEND_URL, MOBILE_URL, "http://localhost:3000", "http://localhost:5173", "http://localhost:8081"],
     credentials: true,
     optionsSuccessStatus: 200,
   })
 );
 
-const csrfMiddleware = csrf({ cookie: true });
 
 import userRouter from "./routes/userRouter";
 import authRouter from "./routes/authRouter";
@@ -64,27 +49,6 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-const isMobile = (req: Request) => {
-  const appTypeHeader = req.headers['x-app-type'];
-  return appTypeHeader === 'mobile'
-};
-
-app.get("/api/csrf-token", csrfMiddleware, (req: Request, res: Response) => {
-  if (isMobile(req)) {
-    res.status(200).json({
-      status: "ok",
-      message: "Mobile client - CSRF not required",
-      csrfToken: null,
-    });
-    return;
-  }
-
-  res.status(200).json({
-    status: "ok",
-    message: "IN APP API is working",
-    csrfToken: req.csrfToken(),
-  });
-});
 
 app.use("/user", userRouter);
 app.use("/auth", authLimiter, authRouter);

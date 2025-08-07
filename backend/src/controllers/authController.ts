@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import { prisma } from "../database/db";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
 
 export const getMe = async (req: Request, res: Response) => {
   try {
@@ -37,11 +40,10 @@ export const getMe = async (req: Request, res: Response) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, phone } = req.body;
-    
-    // Validate input
-    if (!name || !email || !phone) {
-      res.status(400).json({ message: "Name, email, and phone are required" });
+    const { name, email, phone, password } = req.body;
+
+    if (!name || !email || !phone || !password) {
+      res.status(400).json({ message: "Name, email, phone, and password are required" });
       return;
     }
 
@@ -51,8 +53,10 @@ export const register = async (req: Request, res: Response) => {
       return;
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await prisma.user.create({
-      data: { name, email, phone },
+      data: { name, email, phone, password: hashedPassword },
     });
 
     res.status(201).json({
@@ -74,7 +78,7 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { phone } = req.body;
+    const { phone, password } = req.body;
 
     if (!phone) {
       res.status(400).json({ message: "Phone number is required" });
@@ -88,26 +92,93 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      res.status(400).json({ message: "Invalid password" });
+      return;
+    }
+
+    const accessToken = jwt.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "15m" });
+    const refreshToken = jwt.sign({ userId: user.id }, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "7d" });
+
+    const { password: _, id: __, ...userWithoutPasswordandId } = user;
+
     res.status(200).json({
       message: "Login successful",
-      user: {
-        phone: user.phone,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        eligibility: user.eligibility,
-        score: user.score
-      }
+      user: { ...userWithoutPasswordandId },
+      accessToken,
+      refreshToken
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ 
-      message: "Login failed", 
-      error: error instanceof Error ? error.message : "Unknown error" 
+    res.status(500).json({
+      message: "Login failed",
+      error: error instanceof Error ? error.message : "Unknown error"
     });
   }
 };
 
 export const logout = async (req: Request, res: Response) => {
-  res.json({ message: "Logged out successfully" });
+  try {
+    res.status(200).json({
+      message: "Logout successful"
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      message: "Logout failed",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
 };
+
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(401).json({ message: "Refresh token is required" });
+      return;
+    }
+
+    // Verify the refresh token
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as { userId: number };
+    } catch (error) {
+      res.status(401).json({ message: "Invalid refresh token" });
+      return;
+    }
+
+    // Find the user
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId }
+    });
+
+    if (!user) {
+      res.status(401).json({ message: "User not found" });
+      return;
+    }
+
+    // Generate new access token
+    const newAccessToken = jwt.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET!, {
+      expiresIn: "15m",
+    });
+
+    // Return user data with new token
+    const { password: _, id: __, ...userWithoutPasswordandId } = user;
+
+    res.status(200).json({
+      accessToken: newAccessToken,
+      user: userWithoutPasswordandId
+    });
+  } catch (error) {
+    console.error("Refresh token error:", error);
+    res.status(500).json({
+      message: "Failed to refresh token",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+};
+
+

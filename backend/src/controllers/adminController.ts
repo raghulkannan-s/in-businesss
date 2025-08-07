@@ -7,8 +7,7 @@ export const promotionController = async (req : Request, res : Response) => {
     let role = "manager";
     if(!id) {
         res.status(400).json({
-            message: "ID is required",
-            color : "red"
+            message: "ID is required"
         });
         return;
     }
@@ -19,15 +18,13 @@ export const promotionController = async (req : Request, res : Response) => {
 
         if (!user) {
             res.status(404).json({
-                message: "User not found",
-                color : "red"
+                message: "User not found"
             });
             return;
         }
         if(user.role == "admin") {
             res.status(400).json({
-                message: `${user.name} with ID ${user.id} is already an admin`,
-                color : "red"
+                message: `${user.name} with ID ${user.id} is already an admin`
             });
             return;
         }
@@ -42,14 +39,12 @@ export const promotionController = async (req : Request, res : Response) => {
         });
 
         res.status(200).json({
-            message: `User : ${user.name} with Phone ${user.phone} promoted from ${user.role} to ${role}`,
-            color: "green"
+            message: `User : ${user.name} with Phone ${user.phone} promoted from ${user.role} to ${role}`
         });
     } catch (error) {
         console.error("Error promoting user:", error);
         res.status(500).json({
-            message: "Internal server error",
-            color: "red"
+            message: "Internal server error"
         });
     }
 
@@ -60,8 +55,7 @@ export const demotionController = async (req : Request, res : Response) => {
     let role = "user";
     if(!id) {
         res.status(400).json({
-            message: "ID is required",
-            color: "red"
+            message: "ID is required"
         });
         return;
     }
@@ -72,15 +66,13 @@ export const demotionController = async (req : Request, res : Response) => {
 
         if (!user) {
             res.status(404).json({
-                message: "User not found",
-                color: "red"
+                message: "User not found"
             });
             return;
         }
         if(user.role == "user") {
             res.status(400).json({
-                message: `${user.name} with ID ${user.id} is already on user role`,
-                color: "red"
+                message: `${user.name} with ID ${user.id} is already on user role`
             });
             return;
         }
@@ -95,14 +87,12 @@ export const demotionController = async (req : Request, res : Response) => {
         });
 
         res.status(200).json({
-            message: `User : ${user.name} with Phone ${user.phone} demoted from ${user.role} to ${role}`,
-            color: "green"
+            message: `User : ${user.name} with Phone ${user.phone} demoted from ${user.role} to ${role}`
         });
     } catch (error) {
         console.error("Error demoting user:", error);
         res.status(500).json({
-            message: "Internal server error",
-            color: "red"
+            message: "Internal server error"
         });
     }
 }

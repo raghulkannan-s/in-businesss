@@ -3,19 +3,18 @@ import {
   getMe,
   register,
   login,
-  logout
+  logout,
+  refreshToken
 } from "../controllers/authController";
 
 
 const router = express.Router();
 
-const conditionalAuth = (req: any, res: any, next: any) => {
-  next()
-};
 
-router.get('/me', conditionalAuth, getMe);
+router.get('/me', getMe);
 router.post("/register", register);
 router.post("/login", login);
-router.post("/logout", conditionalAuth, logout);
+router.post("/logout", logout);
+router.post("/refresh-token", refreshToken)
 
 export default router;

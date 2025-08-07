@@ -13,30 +13,105 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  admin
+  user
+  guest
+}
+
 model User {
-  id              Int       @id @default(autoincrement())
-  email           String    @unique
-  name            String
-  score           Int       @default(0)
-  phone           String    @unique
-  password        String
-  role            String    @default("user")
-  eligibility     Boolean   @default(true)
-  refreshToken    String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime? @updatedAt
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique @default(uuid())
+  name      String
+  email     String   @unique
+  role      UserRole @default(user)
+  password  String
+  createdAt DateTime @default(now())
+  refreshToken RefreshToken?
+  batsman   Batsman?
+  bowler    Bowler?
+  products  Product[]
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
+  id          String   @id @default(uuid())
   name        String
   description String
-  price       Float
-  stock       Int       @default(0)
-  imageUrl    String
-  category    String
-  createdByPhone String
-  updatedByPhone String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime? @updatedAt
+  price      Float
+  createdAt  DateTime @default(now())
+  createdBy  Int    @unique
+  user      User   @relation(fields: [createdBy], references: [id])
+}
+
+model RefreshToken {
+  id        String      @id @default(uuid())
+  token     String      @unique
+  userId    Int         @unique
+  expiresAt DateTime
+  user      User        @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+}
+
+model Team {
+  id      String    @id @default(uuid())
+  name    String
+  logo    String?
+  players Player[]
+  matchesAsTeamA Match[] @relation("TeamA")
+  matchesAsTeamB Match[] @relation("TeamB")
+}
+
+model Player {
+  id      String @id @default(uuid())
+  name    String
+  number  Int
+  teamId  String
+  team    Team   @relation(fields: [teamId], references: [id])
+}
+
+model Match {
+  id             String   @id @default(uuid())
+  title          String
+  status         String   // scheduled, live, completed
+  tossWonBy      String?
+  optedTo        String?  // bat, bowl
+  overs          Int?
+  teamAId        String
+  teamBId        String
+  winnerId       String?
+  teamA          Team     @relation("TeamA", fields: [teamAId], references: [id])
+  teamB          Team     @relation("TeamB", fields: [teamBId], references: [id])
+  scores         Score[]
+  createdAt      DateTime @default(now())
+}
+
+model Score {
+  id        String   @id @default(uuid())
+  matchId   String
+  playerId  String
+  runs      Int
+  balls     Int
+  fours     Int
+  sixes     Int
+  isOut     Boolean
+  over      Int
+  match     Match    @relation(fields: [matchId], references: [id])
+}
+
+model Batsman {
+  id        String   @id @default(uuid())
+  userId    Int      @unique
+  totalRuns Int
+  totalFours Int
+  totalSixes Int
+  totalMatches Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Bowler {
+  id        String   @id @default(uuid())
+  userId    Int      @unique
+  totalWickets Int
+  totalMatches Int
+  user      User     @relation(fields: [userId], references: [id])
 }

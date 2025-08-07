@@ -3,18 +3,12 @@ const router = Router();
 
 import { getScore, updateScore } from '../controllers/scoreController';
 import { allowUser, blockUser } from '../controllers/eligibilityController';
-
 import { roleMiddleware } from '../middlewares/roleMiddleware';
+import { authMiddleware } from '../middlewares/authMiddleware';
 
-// Conditional auth middleware
-const conditionalAuth = (req: any, res: any, next: any) => {
- next()
-};
-
-router.get('/getScore', conditionalAuth, getScore);
-router.put('/update/:id', conditionalAuth, roleMiddleware(["admin"]), updateScore);
-router.post("/allow/:id", conditionalAuth, roleMiddleware(["admin"]), allowUser);
-router.post("/block/:id", conditionalAuth, roleMiddleware(["admin"]), blockUser);
-
+router.get('/getScore', authMiddleware, getScore);
+router.put('/update/:id', authMiddleware, roleMiddleware(["admin"]), updateScore);
+router.post("/allow/:id", authMiddleware, roleMiddleware(["admin"]), allowUser);
+router.post("/block/:id", authMiddleware, roleMiddleware(["admin"]), blockUser);
 
 export default router;

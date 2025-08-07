@@ -1,23 +1,21 @@
-import { prisma } from "../database/db";
-
+import { Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from './authMiddleware';
 
 export const roleMiddleware = (allowedRoles: string[]) => {
-    return async (req: any, res: any, next: any) => {
-        // const user = await prisma.user.findUnique({
-        //     where: { phone: req.user.phone },
-        // });
+    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+        const user = req.user;
 
-        // if (!user || !user.role) {
-        //     res.status(403).json({ message: "Forbidden: No user roles found" });
-        //     return;
-        // }
+        if (!user || !user.role) {
+            res.status(403).json({ message: "Forbidden: No user roles found" });
+            return;
+        }
 
-        // const hasRole = allowedRoles.includes(user.role);
+        const hasRole = allowedRoles.includes(user.role);
 
-        // if (!hasRole) {
-        //     res.status(403).json({ message: "Forbidden: You do not have the required role" });
-        //     return;
-        // }
+        if (!hasRole) {
+            res.status(403).json({ message: "Forbidden: You do not have the required role" });
+            return;
+        }
 
         next();
     };

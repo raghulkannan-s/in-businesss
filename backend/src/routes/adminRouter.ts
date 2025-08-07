@@ -3,12 +3,9 @@ const router = Router();
 
 import { promotionController, demotionController } from '../controllers/adminController';
 import { roleMiddleware } from '../middlewares/roleMiddleware';
+import { authMiddleware } from '../middlewares/authMiddleware';
 
-const conditionalAuth = (req: any, res: any, next: any) => {
- next()
-};
-
-router.post("/promote", conditionalAuth, roleMiddleware(["admin"]), promotionController)
-router.post("/demote", conditionalAuth, roleMiddleware(["admin"]), demotionController)
+router.post("/promote", authMiddleware, roleMiddleware(["admin"]), promotionController)
+router.post("/demote", authMiddleware, roleMiddleware(["admin"]), demotionController)
 
 export default router;

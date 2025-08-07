@@ -7,3 +7,4 @@ export const hashToken = async (token: string) => {
 export const compareToken = async (token: string, hashed: string) => {
   return await bcrypt.compare(token, hashed);
 };
+

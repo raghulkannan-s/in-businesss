@@ -3,14 +3,10 @@ const router = Router();
 
 import { getAll, getUserById, getUserByPhone } from '../controllers/userController';
 import { roleMiddleware } from '../middlewares/roleMiddleware';
+import { authMiddleware } from '../middlewares/authMiddleware';
 
-const conditionalAuth = (req: any, res: any, next: any) => {
- next()
-};
-
-router.get("/all", conditionalAuth, roleMiddleware(["admin"]), getAll);
-router.get("/:id", conditionalAuth, roleMiddleware(["admin"]), getUserById);
-router.get("/phone/:phone", conditionalAuth, roleMiddleware(["admin"]), getUserByPhone);
-
+router.get("/all", authMiddleware, roleMiddleware(["admin"]), getAll);
+router.get("/:id", authMiddleware, roleMiddleware(["admin"]), getUserById);
+router.get("/phone/:phone", authMiddleware, roleMiddleware(["admin"]), getUserByPhone);
 
 export default router;
