@@ -41,6 +41,7 @@ import authRouter from "./routes/authRouter";
 import adminRouter from "./routes/adminRouter";
 import productRouter from "./routes/productRouter";
 import scoreRouter from "./routes/scoreRouter";
+import teamRouter from "./routes/teamRouter";
 
 app.get("/", (req: Request, res: Response) => {
   res.status(200).json({
@@ -50,8 +51,10 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 
-app.use("/user", userRouter);
 app.use("/auth", authLimiter, authRouter);
+app.use("/teams", teamRouter);
+
+app.use("/user", userRouter);
 app.use("/admin", adminRouter);
 app.use("/product", productRouter);
 app.use("/score", scoreRouter);

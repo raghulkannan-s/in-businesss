@@ -19,8 +19,7 @@ export const getMe = async (req: Request, res: Response) => {
         email: true,
         phone: true,
         role: true,
-        eligibility: true,
-        score: true,
+        eligibility: true
       },
     });
 
@@ -118,21 +117,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const logout = async (req: Request, res: Response) => {
-  try {
-    res.status(200).json({
-      message: "Logout successful"
-    });
-  } catch (error) {
-    console.error("Logout error:", error);
-    res.status(500).json({
-      message: "Logout failed",
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
-  }
-};
-
-export const refreshToken = async (req: Request, res: Response) => {
+export const replenish = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
 
@@ -141,7 +126,6 @@ export const refreshToken = async (req: Request, res: Response) => {
       return;
     }
 
-    // Verify the refresh token
     let decoded;
     try {
       decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as { userId: number };

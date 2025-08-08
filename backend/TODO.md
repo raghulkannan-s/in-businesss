@@ -1,29 +1,4 @@
 
-## 🔐 2. **AUTH MODULE (JWT + Bcrypt)**
-
-* [ ] `POST /api/auth/register`
-* [ ] `POST /api/auth/login`
-* [ ] `GET /api/auth/me` → requires token
-* [ ] Middleware: `verifyJWT`
-* [ ] Hash password with `bcrypt`
-* [ ] Return JWT on login
-* [ ] Store roles (`admin`, `scorer`, etc.)
-
-## 🛣️ 5. **ROUTES**
-
-### Auth
-
-* `POST /auth/register`
-* `POST /auth/login`
-* `GET /auth/me` (Protected)
-
-### Teams & Players
-
-* `POST /teams`
-* `GET /teams`
-* `POST /teams/:id/players`
-* `GET /teams/:id/players`
-
 ### Match
 
 * `POST /matches` – create match
