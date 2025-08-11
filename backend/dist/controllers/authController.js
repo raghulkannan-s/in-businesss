@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshToken = exports.login = exports.register = exports.getMe = void 0;
+exports.replenish = exports.login = exports.register = exports.getMe = void 0;
 const db_1 = require("../database/db");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -21,8 +21,7 @@ const getMe = async (req, res) => {
                 email: true,
                 phone: true,
                 role: true,
-                eligibility: true,
-                score: true,
+                eligibility: true
             },
         });
         if (!user) {
@@ -109,7 +108,7 @@ const login = async (req, res) => {
     }
 };
 exports.login = login;
-const refreshToken = async (req, res) => {
+const replenish = async (req, res) => {
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) {
@@ -151,4 +150,4 @@ const refreshToken = async (req, res) => {
         });
     }
 };
-exports.refreshToken = refreshToken;
+exports.replenish = replenish;

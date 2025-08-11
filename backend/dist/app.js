@@ -6,8 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
+const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json({ limit: "10mb" }));
+// Serve static files from public directory
+app.use(express_1.default.static(path_1.default.join(__dirname, '../public')));
 app.use((0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
@@ -34,13 +37,20 @@ const authRouter_1 = __importDefault(require("./routes/authRouter"));
 const adminRouter_1 = __importDefault(require("./routes/adminRouter"));
 const productRouter_1 = __importDefault(require("./routes/productRouter"));
 const scoreRouter_1 = __importDefault(require("./routes/scoreRouter"));
+const teamRouter_1 = __importDefault(require("./routes/teamRouter"));
 app.get("/", (req, res) => {
+    res.sendFile(path_1.default.join(__dirname, '../public/index.html'));
+});
+app.get("/api/health", (req, res) => {
     res.status(200).json({
         status: "ok",
-        message: "IN APP API is working",
+        message: "Cricket Manager API is running",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
     });
 });
 app.use("/auth", authLimiter, authRouter_1.default);
+app.use("/teams", teamRouter_1.default);
 app.use("/user", userRouter_1.default);
 app.use("/admin", adminRouter_1.default);
 app.use("/product", productRouter_1.default);

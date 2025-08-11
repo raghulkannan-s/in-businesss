@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Manager API - Backend</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --primary-color: #1a73e8;
+            --accent-color: #34a853;
+            --text-color: #333333;
+            --subtext-color: #6c757d;
+            --border-color: #e0e0e0;
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--subtext-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            background-color: rgba(52, 168, 83, 0.1);
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(52, 168, 83, 0.2);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .endpoint {
+            padding: 0.6rem 0.8rem;
+            background-color: #f1f3f4;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .method {
+            font-weight: bold;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: white;
+        }
+
+        .method.get { background-color: var(--accent-color); }
+        .method.post { background-color: #fbbc04; }
+        .method.put { background-color: #1a73e8; }
+        .method.delete { background-color: #ea4335; }
+
+        .tech-stack p {
+            font-size: 0.9rem;
+            color: var(--subtext-color);
+            margin-bottom: 0.4rem;
+        }
+
+        .footer {
+            font-size: 0.8rem;
+            color: var(--subtext-color);
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🏏 Cricket Manager API</h1>
+            <p class="subtitle">Professional Cricket Management System Backend</p>
+
+            <div class="status">
+                <div class="status-dot"></div>
+                <span>API Server Running</span>
+            </div>
+
+            <div class="section">
+                <h3>🚀 Available Endpoints</h3>
+                <div class="endpoint"><span class="method get">GET</span> /api/teams - Get all teams</div>
+                <div class="endpoint"><span class="method post">POST</span> /api/teams - Create team</div>
+                <div class="endpoint"><span class="method get">GET</span> /api/teams/:id/players - Get team players</div>
+                <div class="endpoint"><span class="method post">POST</span> /api/auth/login - User login</div>
+                <div class="endpoint"><span class="method post">POST</span> /api/auth/register - User registration</div>
+                <div class="endpoint"><span class="method get">GET</span> /api/matches - Get all matches</div>
+                <div class="endpoint"><span class="method post">POST</span> /api/matches - Create match</div>
+                <div class="endpoint"><span class="method post">POST</span> /api/score - Update match scores</div>
+            </div>
+
+            <div class="section tech-stack">
+                <h3>📱 Technology Stack</h3>
+                <p>• Node.js + Express + TypeScript</p>
+                <p>• PostgreSQL + Prisma ORM</p>
+                <p>• JWT Authentication</p>
+                <p>• Rate Limiting & CORS</p>
+            </div>
+
+            <div class="footer">
+                Cricket Manager API v1.0 — Built for professional cricket scoring and management
+            </div>
+        </div>
+    </div>
+</body>
+</html>

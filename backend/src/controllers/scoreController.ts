@@ -13,7 +13,7 @@ export const getScore = async (req: Request, res: Response) => {
             return;
         }
         res.status(200).json({
-            score: user.score
+            inScore: user.inScore
         });
         return;
     } catch (error) {
@@ -33,8 +33,8 @@ export const updateScore = async (req: Request, res: Response) =>{
         });
         return;
     }
-    const { score } = req.body;
-    const parsedScore = parseInt(score);
+    const { inScore } = req.body;
+    const parsedScore = parseInt(inScore);
     if (parsedScore === undefined || parsedScore === null) {
         res.status(400).json({
             message: "Score is required"
@@ -44,20 +44,8 @@ export const updateScore = async (req: Request, res: Response) =>{
     try {
         const user = await prisma.user.update({
             where: { id: parsedId },
-            data: { score: parsedScore }
+            data: { inScore: parsedScore }
         });
-        if(parsedScore < 0){
-            await prisma.user.update({
-                where: { id: parsedId },
-                data: { eligibility: false }
-            });
-        }
-        if(parsedScore >= 0){
-            await prisma.user.update({
-                where: { id: parsedId },
-                data: { eligibility: true }
-            });
-        }
         res.status(200).json({
             message: 'Score updated successfully',
             user: user

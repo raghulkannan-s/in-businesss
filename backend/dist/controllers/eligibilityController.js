@@ -16,7 +16,7 @@ const allowUser = async (req, res) => {
     res.status(200).json({
         message: `${user.name} is now eligible`,
         eligibility: user.eligibility,
-        score: user.score
+        inScore: user.inScore
     });
 };
 exports.allowUser = allowUser;
@@ -34,7 +34,7 @@ const blockUser = async (req, res) => {
     res.status(200).json({
         message: `${user.name} is now blocked`,
         eligibility: user.eligibility,
-        score: user.score
+        inScore: user.inScore
     });
 };
 exports.blockUser = blockUser;

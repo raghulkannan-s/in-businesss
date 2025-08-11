@@ -13,16 +13,17 @@ const createProduct = async (req, res) => {
                 category: category,
                 stock: parseInt(stock),
                 imageUrl: imageUrl,
-                createdByPhone: req.user.phone
+                createdBy: req.user.phone
             }
         });
         res.status(201).json({
-            message: 'Product created successfully',
-            product
+            message: "Product created successfully",
+            product,
         });
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to create product' });
+        console.error("Error creating product:", error);
+        res.status(500).json({ message: "Failed to create product" });
     }
 };
 exports.createProduct = createProduct;
@@ -30,25 +31,24 @@ const updateProduct = async (req, res) => {
     try {
         const { id, name, description, price, category, stock, imageUrl } = req.body;
         const product = await db_1.prisma.product.update({
-            where: { id: id },
+            where: { id },
             data: {
                 name: name,
                 description: description,
                 price: parseFloat(price),
                 category: category,
                 stock: parseInt(stock),
-                imageUrl: imageUrl,
-                updatedAt: new Date(),
-                updatedByPhone: req.user.phone
+                imageUrl: imageUrl
             }
         });
         res.status(200).json({
-            message: 'Product updated successfully',
-            product
+            message: "Product updated successfully",
+            product,
         });
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to update product' });
+        console.error("Error updating product:", error);
+        res.status(500).json({ message: "Failed to update product" });
     }
 };
 exports.updateProduct = updateProduct;

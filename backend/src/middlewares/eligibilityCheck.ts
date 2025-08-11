@@ -21,12 +21,11 @@ export const eligibilityCheck = async(req: Request, res: Response, next: NextFun
     } else {
         res.status(403).json({
             message : "Forbidden: User is not eligible",
-            score : user.score
+            inScore : user.inScore
         });
         return;
     }
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Error in eligibilityCheck middleware:", error);
         res.status(500).json({
             message: "Internal Server Error"

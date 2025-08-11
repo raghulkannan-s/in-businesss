@@ -32,25 +32,31 @@ model User {
   role        UserRole   @default(user)
   phone       String     @unique
   password    String
-  eligibility Int        @default(0)
+  eligibility Boolean    @default(true)
+  inScore     Int        @default(0)
   createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   refreshToken RefreshToken?
   teamId      String?
   team        Team?      @relation(fields: [teamId], references: [id])
   batsman     Batsman?
   bowler      Bowler?
-  products    Product[]
+  products    Product[] @relation("createdByRelation")
   scores      Score[]
 }
 
 model Product {
   id          String   @id @default(uuid())
   name        String
-  description String
-  price       Float
+  description String   @default("Placeholder description")
+  price       Float    @default(0)
+  stock       Int      @default(0)
+  category    String   @default("General")
+  imageUrl    String   @default("https://via.placeholder.com/150")
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   createdBy   Int
-  user        User     @relation(fields: [createdBy], references: [id])
+  createdByUser        User     @relation( "createdByRelation", fields: [createdBy], references: [id])
 }
 
 model RefreshToken {

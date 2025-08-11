@@ -1,19 +1,20 @@
 import express from "express";
 import {
-    createTeam,
     getTeam,
+    createTeam,
     updateTeam,
     deleteTeam,
+} from "../controllers/teamController";
 
+import {
     getTeamPlayers,
     getTeamPlayer,
-
     createTeamPlayers,
     addTeamPlayer,
     deleteTeamPlayer,
     updateTeamPlayer
+} from "../controllers/playerController"
 
-} from "../controllers/teamController";
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { roleMiddleware } from '../middlewares/roleMiddleware';
 

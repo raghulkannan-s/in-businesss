@@ -21,7 +21,7 @@ const eligibilityCheck = async (req, res, next) => {
         else {
             res.status(403).json({
                 message: "Forbidden: User is not eligible",
-                score: user.score
+                inScore: user.inScore
             });
             return;
         }

@@ -2,9 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.demotionController = exports.promotionController = void 0;
 const db_1 = require("../database/db");
+const client_1 = require("@prisma/client");
 const promotionController = async (req, res) => {
     const { id } = req.body;
-    let role = "manager";
+    let role = client_1.UserRole.manager;
     if (!id) {
         res.status(400).json({
             message: "ID is required"
@@ -21,14 +22,14 @@ const promotionController = async (req, res) => {
             });
             return;
         }
-        if (user.role == "admin") {
+        if (user.role == client_1.UserRole.admin) {
             res.status(400).json({
                 message: `${user.name} with ID ${user.id} is already an admin`
             });
             return;
         }
-        if (user.role == "manager") {
-            role = "admin";
+        if (user.role == client_1.UserRole.manager) {
+            role = client_1.UserRole.admin;
         }
         await db_1.prisma.user.update({
             where: { id: id },
@@ -50,7 +51,7 @@ const promotionController = async (req, res) => {
 exports.promotionController = promotionController;
 const demotionController = async (req, res) => {
     const { id } = req.body;
-    let role = "user";
+    let role = client_1.UserRole.user;
     if (!id) {
         res.status(400).json({
             message: "ID is required"
@@ -67,14 +68,14 @@ const demotionController = async (req, res) => {
             });
             return;
         }
-        if (user.role == "user") {
+        if (user.role == client_1.UserRole.user) {
             res.status(400).json({
                 message: `${user.name} with ID ${user.id} is already on user role`
             });
             return;
         }
-        if (user.role == "admin") {
-            role = "manager";
+        if (user.role == client_1.UserRole.admin) {
+            role = client_1.UserRole.manager;
         }
         await db_1.prisma.user.update({
             where: { id: id },

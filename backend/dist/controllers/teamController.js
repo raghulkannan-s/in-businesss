@@ -1,50 +1,45 @@
-import { Request, Response } from 'express';
-import { prisma } from '../database/db';
-import { AuthenticatedRequest } from '../middlewares/authMiddleware';
-
-export const createTeam = async (req: AuthenticatedRequest, res: Response) => {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteTeam = exports.updateTeam = exports.getTeam = exports.createTeam = void 0;
+const db_1 = require("../database/db");
+const createTeam = async (req, res) => {
     try {
         const { name, logo } = req.body;
-
         if (!name) {
             res.status(400).json({ message: "Team name is required" });
             return;
         }
-
-        const existingTeam = await prisma.team.findFirst({
+        const existingTeam = await db_1.prisma.team.findFirst({
             where: { name: name }
         });
-
         if (existingTeam) {
             res.status(400).json({ message: "Team with this name already exists" });
             return;
         }
-
-        const team = await prisma.team.create({
+        const team = await db_1.prisma.team.create({
             data: {
                 name,
                 logo: logo || null,
             },
         });
-
         res.status(201).json({
             message: "Team created successfully",
             team,
         });
-    } catch (error) {
+    }
+    catch (error) {
         console.error("Error creating team:", error);
         res.status(500).json({ message: "Failed to create team" });
     }
 };
-
-export const getTeam = async (req: Request, res: Response) => {
+exports.createTeam = createTeam;
+const getTeam = async (req, res) => {
     try {
         const { id } = req.params;
-
         if (!id) {
-            const teams = await prisma.team.findMany({
+            const teams = await db_1.prisma.team.findMany({
                 include: {
-                    players: { // This is User[] relation in your schema
+                    players: {
                         select: {
                             id: true,
                             name: true,
@@ -62,19 +57,17 @@ export const getTeam = async (req: Request, res: Response) => {
                 },
                 orderBy: { name: 'asc' },
             });
-
             res.status(200).json({
                 message: "Teams retrieved successfully",
                 teams,
             });
             return;
         }
-
         // Get specific team
-        const team = await prisma.team.findUnique({
+        const team = await db_1.prisma.team.findUnique({
             where: { id }, // Changed from teamId to id
             include: {
-                players: { // This is User[] relation
+                players: {
                     select: {
                         id: true,
                         name: true,
@@ -106,58 +99,51 @@ export const getTeam = async (req: Request, res: Response) => {
                 },
             },
         });
-
         if (!team) {
             res.status(404).json({ message: "Team not found" });
             return;
         }
-
         res.status(200).json({
             message: "Team retrieved successfully",
             team,
         });
-    } catch (error) {
+    }
+    catch (error) {
         console.error("Error fetching team:", error);
         res.status(500).json({ message: "Failed to fetch team" });
     }
 };
-
-export const updateTeam = async (req: AuthenticatedRequest, res: Response) => {
+exports.getTeam = getTeam;
+const updateTeam = async (req, res) => {
     try {
         const { id } = req.params; // Changed from teamId to id
         const { name, logo } = req.body;
-
         if (!id) {
             res.status(400).json({ message: "Team ID is required" });
             return;
         }
-
         // Check if team exists
-        const existingTeam = await prisma.team.findUnique({
+        const existingTeam = await db_1.prisma.team.findUnique({
             where: { id },
         });
-
         if (!existingTeam) {
             res.status(404).json({ message: "Team not found" });
             return;
         }
-
         // Check if new name conflicts with existing team
         if (name && name !== existingTeam.name) {
-            const nameConflict = await prisma.team.findFirst({
+            const nameConflict = await db_1.prisma.team.findFirst({
                 where: {
                     name,
                     id: { not: id },
                 },
             });
-
             if (nameConflict) {
                 res.status(400).json({ message: "Team with this name already exists" });
                 return;
             }
         }
-
-        const updatedTeam = await prisma.team.update({
+        const updatedTeam = await db_1.prisma.team.update({
             where: { id },
             data: {
                 ...(name && { name }),
@@ -174,28 +160,26 @@ export const updateTeam = async (req: AuthenticatedRequest, res: Response) => {
                 },
             },
         });
-
         res.status(200).json({
             message: "Team updated successfully",
             team: updatedTeam,
         });
-    } catch (error) {
+    }
+    catch (error) {
         console.error("Error updating team:", error);
         res.status(500).json({ message: "Failed to update team" });
     }
 };
-
-export const deleteTeam = async (req: AuthenticatedRequest, res: Response) => {
+exports.updateTeam = updateTeam;
+const deleteTeam = async (req, res) => {
     try {
         const { id } = req.params; // Changed from teamId to id
-
         if (!id) {
             res.status(400).json({ message: "Team ID is required" });
             return;
         }
-
         // Check if team exists
-        const existingTeam = await prisma.team.findUnique({
+        const existingTeam = await db_1.prisma.team.findUnique({
             where: { id }, // Changed from teamId to id
             include: {
                 _count: {
@@ -207,26 +191,22 @@ export const deleteTeam = async (req: AuthenticatedRequest, res: Response) => {
                 },
             },
         });
-
         if (!existingTeam) {
             res.status(404).json({ message: "Team not found" });
             return;
         }
-
         // Check if team has active matches
         const totalMatches = existingTeam._count.matchesAsTeamA + existingTeam._count.matchesAsTeamB;
         if (totalMatches > 0) {
-            res.status(400).json({ 
+            res.status(400).json({
                 message: "Cannot delete team with existing matches",
                 matchCount: totalMatches,
             });
             return;
         }
-
-        await prisma.team.delete({
+        await db_1.prisma.team.delete({
             where: { id }, // Changed from teamId to id
         });
-
         res.status(200).json({
             message: "Team deleted successfully",
             deletedTeam: {
@@ -234,8 +214,10 @@ export const deleteTeam = async (req: AuthenticatedRequest, res: Response) => {
                 name: existingTeam.name,
             },
         });
-    } catch (error) {
+    }
+    catch (error) {
         console.error("Error deleting team:", error);
         res.status(500).json({ message: "Failed to delete team" });
     }
 };
+exports.deleteTeam = deleteTeam;

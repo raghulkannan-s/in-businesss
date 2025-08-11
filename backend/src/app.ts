@@ -1,10 +1,14 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import path from "path";
 
 const app = express();
 
 app.use(express.json({ limit: "10mb" }));
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, '../public')));
 
 app.use(
   rateLimit({
@@ -44,9 +48,15 @@ import scoreRouter from "./routes/scoreRouter";
 import teamRouter from "./routes/teamRouter";
 
 app.get("/", (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+app.get("/api/health", (req: Request, res: Response) => {
   res.status(200).json({
     status: "ok",
-    message: "IN APP API is working",
+    message: "Cricket Manager API is running",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
   });
 });
 

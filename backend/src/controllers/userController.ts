@@ -8,7 +8,7 @@ export const getAll = async (req: Request, res: Response) => {
                 id: true,
                 email: true,
                 name: true,
-                score: true,
+                inScore: true,
                 phone: true,
                 role: true,
                 eligibility: true,
@@ -32,7 +32,7 @@ export const getUserById = async (req: Request, res: Response) => {
                 id: true,
                 email: true,
                 name: true,
-                score: true,
+                inScore: true,
                 phone: true,
                 role: true,
                 eligibility: true,
@@ -49,6 +49,7 @@ export const getUserById = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Failed to fetch user" });
     }
 };
+
 export const getUserByPhone = async (req: Request, res: Response) => {
     const { phone } = req.params;
     try {
@@ -58,7 +59,7 @@ export const getUserByPhone = async (req: Request, res: Response) => {
                 id: true,
                 email: true,
                 name: true,
-                score: true,
+                inScore: true,
                 phone: true,
                 role: true,
                 eligibility: true,

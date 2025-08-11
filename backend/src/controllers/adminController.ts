@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { prisma } from '../database/db';
+import { UserRole } from '@prisma/client';
 
 export const promotionController = async (req : Request, res : Response) => {
 
     const { id } = req.body;
-    let role = "manager";
+    let role: UserRole = UserRole.manager;
     if(!id) {
         res.status(400).json({
             message: "ID is required"
@@ -22,14 +23,14 @@ export const promotionController = async (req : Request, res : Response) => {
             });
             return;
         }
-        if(user.role == "admin") {
+        if(user.role == UserRole.admin) {
             res.status(400).json({
                 message: `${user.name} with ID ${user.id} is already an admin`
             });
             return;
         }
-        if(user.role == "manager") {
-            role = "admin";
+        if(user.role == UserRole.manager) {
+            role = UserRole.admin;
         }
         await prisma.user.update({
             where: { id: id },
@@ -52,7 +53,7 @@ export const promotionController = async (req : Request, res : Response) => {
 
 export const demotionController = async (req : Request, res : Response) => {
     const {id} = req.body;
-    let role = "user";
+    let role: UserRole = UserRole.user;
     if(!id) {
         res.status(400).json({
             message: "ID is required"
@@ -70,14 +71,14 @@ export const demotionController = async (req : Request, res : Response) => {
             });
             return;
         }
-        if(user.role == "user") {
+        if(user.role == UserRole.user) {
             res.status(400).json({
                 message: `${user.name} with ID ${user.id} is already on user role`
             });
             return;
         }
-        if(user.role == "admin") {
-            role = "manager";
+        if(user.role == UserRole.admin) {
+            role = UserRole.manager;
         }
         await prisma.user.update({
             where: { id: id },
