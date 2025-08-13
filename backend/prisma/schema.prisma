@@ -107,6 +107,7 @@ model Score {
   over      Int
   match     Match    @relation(fields: [matchId], references: [id])
   player    User     @relation(fields: [playerId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model Batsman {

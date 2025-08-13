@@ -26,8 +26,9 @@ const authMiddleware = async (req, res, next) => {
             where: { id: decoded.userId },
             select: {
                 id: true,
+                name: true,
                 phone: true,
-                role: true,
+                role: true
             }
         });
         if (!user) {
@@ -36,6 +37,7 @@ const authMiddleware = async (req, res, next) => {
         }
         req.user = {
             id: user.id,
+            name: user.name,
             phone: user.phone,
             role: user.role
         };

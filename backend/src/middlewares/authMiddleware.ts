@@ -7,6 +7,7 @@ export interface AuthenticatedRequest extends Request {
     id: number;
     phone: string;
     role: string;
+    name: string;
   };
 }
 
@@ -33,8 +34,9 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
       where: { id: decoded.userId },
       select: {
         id: true,
+        name: true,
         phone: true,
-        role: true,
+        role: true
       }
     });
 
@@ -45,6 +47,7 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
 
     req.user = {
       id: user.id,
+      name: user.name,
       phone: user.phone,
       role: user.role
     };

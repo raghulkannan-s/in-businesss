@@ -1,13 +1,4 @@
 
-### Match
-
-* `POST /matches` – create match
-* `GET /matches` – all matches
-* `GET /matches/:id` – match details
-* `PATCH /matches/:id/toss`
-* `PATCH /matches/:id/overs`
-* `PATCH /matches/:id/winner`
-
 ### Score Recording
 
 * `POST /matches/:id/scores` – update per ball

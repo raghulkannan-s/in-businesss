@@ -7,7 +7,6 @@ const app = express();
 
 app.use(express.json({ limit: "10mb" }));
 
-// Serve static files from public directory
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.use(
@@ -33,7 +32,7 @@ const MOBILE_URL = process.env.MOBILE_URL || "exp://localhost:8081";
 
 app.use(
   cors({
-    origin: [FRONTEND_URL, MOBILE_URL, "http://localhost:3000", "http://localhost:5173", "http://localhost:8081"],
+    origin: [FRONTEND_URL, MOBILE_URL],
     credentials: true,
     optionsSuccessStatus: 200,
   })
@@ -46,6 +45,9 @@ import adminRouter from "./routes/adminRouter";
 import productRouter from "./routes/productRouter";
 import scoreRouter from "./routes/scoreRouter";
 import teamRouter from "./routes/teamRouter";
+import matchRouter from "./routes/matchRouter";
+import logsRouter from "./routes/logsRouter";
+import uploadRouter from "./routes/uploadRouter";
 
 app.get("/", (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
@@ -63,6 +65,9 @@ app.get("/api/health", (req: Request, res: Response) => {
 
 app.use("/auth", authLimiter, authRouter);
 app.use("/teams", teamRouter);
+app.use("/matches", matchRouter);
+app.use("/logs", logsRouter);
+app.use("/upload", uploadRouter);
 
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);

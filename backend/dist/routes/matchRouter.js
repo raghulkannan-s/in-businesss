@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const router = express_1.default.Router();
+const matchController_1 = require("../controllers/matchController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+router.get("/", matchController_1.getAllMatchesController);
+router.get("/:id", matchController_1.getMatchByIdController);
+router.get("/:id/scoreboard", matchController_1.getMatchScoreboardController);
+router.post("/", matchController_1.createMatchController);
+router.post("/:id/scores", authMiddleware_1.authMiddleware, matchController_1.updateMatchScoreController);
+router.put("/:id", matchController_1.updateMatchController);
+router.delete("/:id", matchController_1.deleteMatchController);
+router.patch("/:id/toss", matchController_1.updateMatchTossController);
+router.patch("/:id/overs", matchController_1.updateMatchOversController);
+router.patch("/:id/winner", matchController_1.updateMatchWinnerController);
+exports.default = router;
