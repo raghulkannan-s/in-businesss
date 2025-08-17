@@ -1,32 +1,31 @@
-import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
-
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Link, useRouter } from 'expo-router';
 
 export default function NotFoundScreen() {
+  const router = useRouter();
+
   return (
-    <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">This screen does not exist.</ThemedText>
-        <Link href="/" style={styles.link}>
-          <ThemedText type="link">Go to home screen!</ThemedText>
+    <View className="flex-1 items-center justify-center bg-white p-4">
+
+      <Text className="text-3xl font-bold text-gray-800 mb-2">Oops!</Text>
+      <Text className="text-xl text-gray-600 mb-8 text-center">
+        We couldn't find the page you're looking for.
+      </Text>
+      
+      <View className="flex-row gap-4">
+        <TouchableOpacity 
+          onPress={() => router.back()}
+          className="bg-gray-200 px-6 py-3 rounded-lg"
+        >
+          <Text className="text-gray-800 font-medium">Go Back</Text>
+        </TouchableOpacity>
+        
+        <Link href="/" asChild>
+          <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg">
+            <Text className="text-white font-medium">Go Home</Text>
+          </TouchableOpacity>
         </Link>
-      </ThemedView>
-    </>
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
-  },
-});
