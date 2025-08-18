@@ -143,9 +143,16 @@ export const replenish = async (req: Request, res: Response) => {
       return;
     }
 
-    // Find the user
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId }
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        inScore: true,
+        eligibility: true
+      }
     });
 
     if (!user) {
@@ -153,17 +160,17 @@ export const replenish = async (req: Request, res: Response) => {
       return;
     }
 
-    // Generate new access token
+
     const newAccessToken = jwt.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET!, {
       expiresIn: "15m",
     });
 
     // Return user data with new token
-    const { password: _, id: __, ...userWithoutPasswordandId } = user;
+    const { id: __, ...userWithoutId } = user;
 
     res.status(200).json({
       accessToken: newAccessToken,
-      user: userWithoutPasswordandId
+      user: userWithoutId
     });
   } catch (error) {
     console.error("Refresh token error:", error);
