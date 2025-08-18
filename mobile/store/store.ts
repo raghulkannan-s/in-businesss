@@ -1,12 +1,10 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-
-import { User } from "@/types/api"
+import { User, Product, Team, Score } from "@/types/api";
+import { getCurrentUser, getProducts, getTeams, getScores } from '@/services/api';
 
 interface AuthState {
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 
@@ -15,25 +13,36 @@ interface AuthState {
   logout: () => Promise<void>;
   loadTokensFromSecureStore: () => Promise<void>;
   setLoading: (loading: boolean) => void;
+  fetchUserProfile: () => Promise<void>;
+}
+
+interface DataState {
+  products: Product[];
+  teams: Team[];
+  scores: Score[];
+  isLoadingData: boolean;
+
+  setProducts: (products: Product[]) => void;
+  setTeams: (teams: Team[]) => void;
+  setScores: (scores: Score[]) => void;
+  fetchProducts: () => Promise<void>;
+  fetchTeams: () => Promise<void>;
+  fetchScores: () => Promise<void>;
+  setLoadingData: (loading: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  accessToken: null,
-  refreshToken: null,
   isAuthenticated: false,
   isLoading: true,
 
   setAuth: async (user: User, accessToken: string, refreshToken: string) => {
     try {
-
       await SecureStore.setItemAsync('accessToken', accessToken);
       await SecureStore.setItemAsync('refreshToken', refreshToken);
-      
+
       set({
         user,
-        accessToken,
-        refreshToken,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -48,14 +57,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     try {
-      // Remove tokens from secure store
       await SecureStore.deleteItemAsync('accessToken');
       await SecureStore.deleteItemAsync('refreshToken');
-      
+
       set({
         user: null,
-        accessToken: null,
-        refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
       });
@@ -68,15 +74,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const accessToken = await SecureStore.getItemAsync('accessToken');
       const refreshToken = await SecureStore.getItemAsync('refreshToken');
-      
+
       if (accessToken && refreshToken) {
         set({
-          accessToken,
-          refreshToken,
           isAuthenticated: true,
           isLoading: false,
         });
-
+        // Fetch user profile after token validation
+        get().fetchUserProfile();
       } else {
         set({ isLoading: false });
       }
@@ -86,7 +91,77 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  fetchUserProfile: async () => {
+    try {
+      const user = await getCurrentUser();
+      set({ user });
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+      // If token is invalid, logout
+      get().logout();
+    }
+  },
+
   setLoading: (loading: boolean) => {
     set({ isLoading: loading });
+  },
+}));
+
+export const useDataStore = create<DataState>((set, get) => ({
+  products: [],
+  teams: [],
+  scores: [],
+  isLoadingData: false,
+
+  setProducts: (products: Product[]) => {
+    set({ products });
+  },
+
+  setTeams: (teams: Team[]) => {
+    set({ teams });
+  },
+
+  setScores: (scores: Score[]) => {
+    set({ scores });
+  },
+
+  fetchProducts: async () => {
+    try {
+      set({ isLoadingData: true });
+      const products = await getProducts();
+      set({ products });
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    } finally {
+      set({ isLoadingData: false });
+    }
+  },
+
+  fetchTeams: async () => {
+    try {
+      set({ isLoadingData: true });
+      const teams = await getTeams();
+      set({ teams });
+    } catch (error) {
+      console.error('Failed to fetch teams:', error);
+    } finally {
+      set({ isLoadingData: false });
+    }
+  },
+
+  fetchScores: async () => {
+    try {
+      set({ isLoadingData: true });
+      const scores = await getScores();
+      set({ scores });
+    } catch (error) {
+      console.error('Failed to fetch scores:', error);
+    } finally {
+      set({ isLoadingData: false });
+    }
+  },
+
+  setLoadingData: (loading: boolean) => {
+    set({ isLoadingData: loading });
   },
 }));

@@ -15,6 +15,10 @@ export default function RegisterScreen() {
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit() {
+    if (!name || !email || !phone || !password || !confirm) {
+      setError('All fields are required');
+      return;
+    }
     setError(null);
     if (password !== confirm) {
       setError('Passwords do not match');
@@ -103,11 +107,6 @@ export default function RegisterScreen() {
           <Pressable onPress={onSubmit} disabled={loading} style={({ pressed }) => [styles.button, (pressed || loading) && styles.buttonPressed]}>
             {loading ? <ActivityIndicator color='#fff' /> : <Text style={styles.buttonText}>Register</Text>}
           </Pressable>
-        </View>
-
-        <View style={styles.rowCenter}>
-          <Text style={styles.small}>Have an account?</Text>
-            <Link href='/(auth)/login' style={styles.link}>Login</Link>
         </View>
       </View>
     </KeyboardAvoidingView>

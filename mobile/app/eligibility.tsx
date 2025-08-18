@@ -6,11 +6,11 @@ import { useAuthStore } from '@/store/store';
 export default function EligibilityScreen() {
   const { user } = useAuthStore();
   const eligibilityScore = user?.inScore ?? 0;
-
+  
   const getScoreColor = (score: number) => {
-    if (score > 0) return '#22c55e';
-    if (score === 0) return '#f59e0b';
-    return '#ef4444';
+    if (score > 0) return '#22c55e'; // green - good
+    if (score === 0) return '#55a5fbff'; // amber - okay
+    return '#ef4444'; // red - bad
   };
 
   const getScoreText = (score: number) => {
@@ -42,16 +42,14 @@ export default function EligibilityScreen() {
         </View>
       </View>
 
-      {eligibilityScore >= 0 && (
-        <View style={styles.footer}>
-          <Pressable
-            onPress={() => router.push('/(main)/home')}
-            style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
-          >
-            <Text style={styles.homeButtonText}>Go to Home</Text>
-          </Pressable>
-        </View>
-      )}
+      <View style={styles.footer}>
+        <Pressable 
+          onPress={() => router.push('/(main)/home')} 
+          style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
+        >
+          <Text style={styles.homeButtonText}>Go to Home</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
