@@ -36,7 +36,6 @@ model User {
   inScore     Int        @default(0)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  refreshToken RefreshToken?
   teamId      String?
   team        Team?      @relation(fields: [teamId], references: [id])
   batsman     Batsman?
@@ -57,15 +56,6 @@ model Product {
   updatedAt   DateTime @updatedAt
   createdBy   Int
   createdByUser        User     @relation( "createdByRelation", fields: [createdBy], references: [id])
-}
-
-model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    Int      @unique
-  expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
 }
 
 model Team {

@@ -128,16 +128,18 @@ export const login = async (req: Request, res: Response) => {
 
 export const replenish = async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.headers.authorization;
 
     if (!refreshToken) {
       res.status(401).json({ message: "Refresh token is required" });
       return;
     }
 
+    const token = refreshToken.split(" ")[1];
+
     let decoded;
     try {
-      decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as { userId: number };
+      decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET!) as { userId: number };
     } catch (error) {
       res.status(401).json({ message: "Invalid refresh token" });
       return;
@@ -160,12 +162,10 @@ export const replenish = async (req: Request, res: Response) => {
       return;
     }
 
-
     const newAccessToken = jwt.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET!, {
       expiresIn: "15m",
     });
 
-    // Return user data with new token
     const { id: __, ...userWithoutId } = user;
 
     res.status(200).json({
