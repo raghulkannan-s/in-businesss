@@ -13,7 +13,7 @@ interface UploadedFile {
     path: string;
 }
 
-export const uploadScreenshotController = async (req: AuthenticatedRequest, res: Response) => {
+export const uploadScreenshotController = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const file = req.file as UploadedFile;
         const { matchId, description, over, ball } = req.body;
@@ -25,6 +25,17 @@ export const uploadScreenshotController = async (req: AuthenticatedRequest, res:
 
         if (!matchId) {
             res.status(400).json({ message: 'Match ID is required' });
+            return;
+        }
+
+        // Validate that the match exists in our Prisma database
+        const { prisma } = await import('../database/db');
+        const match = await prisma.match.findUnique({
+            where: { id: matchId }
+        });
+
+        if (!match) {
+            res.status(404).json({ message: 'Match not found' });
             return;
         }
 
@@ -70,7 +81,7 @@ export const uploadScreenshotController = async (req: AuthenticatedRequest, res:
 };
 
 // Get screenshot by ID
-export const getScreenshotController = async (req: Request, res: Response) => {
+export const getScreenshotController = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
 
@@ -105,7 +116,7 @@ export const getScreenshotController = async (req: Request, res: Response) => {
 };
 
 // Get all screenshots for a match
-export const getMatchScreenshotsController = async (req: Request, res: Response) => {
+export const getMatchScreenshotsController = async (req: Request, res: Response): Promise<void> => {
     try {
         const { matchId } = req.params;
 
@@ -140,7 +151,7 @@ export const getMatchScreenshotsController = async (req: Request, res: Response)
 };
 
 // Delete screenshot
-export const deleteScreenshotController = async (req: AuthenticatedRequest, res: Response) => {
+export const deleteScreenshotController = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
 

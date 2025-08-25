@@ -32,7 +32,7 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-export const uploadMatchScreenshot = async (req: AuthenticatedRequest, res: Response) => {
+export const uploadMatchScreenshot = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const matchId = req.params.id;
         
@@ -42,11 +42,13 @@ export const uploadMatchScreenshot = async (req: AuthenticatedRequest, res: Resp
         });
 
         if (!match) {
-            return res.status(404).json({ message: 'Match not found' });
+            res.status(404).json({ message: 'Match not found' });
+            return;
         }
 
         if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
+            res.status(400).json({ message: 'No file uploaded' });
+            return;
         }
 
         // Save screenshot info to database (if you have a screenshots table)

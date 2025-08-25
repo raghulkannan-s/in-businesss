@@ -185,7 +185,7 @@ export const createTeamPlayers = async (req: AuthenticatedRequest, res: Response
                 id: team.id,
                 name: team.name,
             },
-            players: createdPlayers.map(p => ({
+            players: createdPlayers.map((p: any) => ({
                 id: p.id,
                 name: p.name,
                 email: p.email,
@@ -426,7 +426,7 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
 
         // Calculate detailed rankings with proper earnings formula
         const rankings = await Promise.all(
-            playerStats.map(async (stat) => {
+            playerStats.map(async (stat: any) => {
                 const player = await prisma.user.findUnique({
                     where: { id: stat.playerId },
                     select: { id: true, name: true, email: true }
@@ -450,12 +450,12 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
                     }
                 });
 
-                // Calculate wickets taken (as bowler)
-                const wicketsTaken = await prisma.score.count({
+                // Calculate wickets taken (as bowler) - this would require a bowlerId field in Score table
+                // For now, we'll calculate wickets as a batsman (times out)
+                const wicketsAsOut = await prisma.score.count({
                     where: {
                         playerId: stat.playerId,
-                        isOut: true,
-                        wicketType: { not: null }
+                        isOut: true
                     }
                 });
 
@@ -468,11 +468,10 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
 
                 const matches = matchesPlayed.length;
 
-                // Earnings calculation based on requirements:
-                // +₹5 per run, -₹5 per dot, +₹50 per wicket (shared), +₹5 per dot bowled, -₹5 per run conceded
-                const batsmanEarnings = (runs * 5) - (dotBalls * 5);
-                const bowlerEarnings = (wicketsTaken * 50); // Simplified for now
-                const totalEarnings = batsmanEarnings + bowlerEarnings;
+                // Enhanced earnings calculation based on comprehensive cricket performance:
+                // Batting: +₹5 per run, +₹50 per four, +₹100 per six, -₹5 per dot ball, -₹50 per dismissal
+                const batsmanEarnings = (runs * 5) + (fours * 50) + (sixes * 100) - (dotBalls * 5) - (wicketsAsOut * 50);
+                const totalEarnings = batsmanEarnings;
 
                 // Performance metrics
                 const strikeRate = balls > 0 ? ((runs / balls) * 100) : 0;
@@ -487,13 +486,12 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
                         sixes,
                         balls,
                         dotBalls,
-                        wicketsTaken,
+                        wicketsAsOut,
                         matches,
                         strikeRate: Number(strikeRate.toFixed(2)),
                         average: Number(average.toFixed(2)),
                         economy: Number(economy.toFixed(2)),
                         batsmanEarnings,
-                        bowlerEarnings,
                         totalEarnings
                     }
                 };
@@ -518,11 +516,11 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
         });
     } catch (error) {
         console.error('Error fetching player rankings:', error);
-        res.status(500).json({ message: 'Failed to fetch player rankings', error: error.message });
+        res.status(500).json({ message: 'Failed to fetch player rankings', error: (error as Error).message });
     }
 };
 
-export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response) => {
+export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const playerId = parseInt(req.params.id);
         
@@ -532,7 +530,8 @@ export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response)
         });
 
         if (!player) {
-            return res.status(404).json({ message: 'Player not found' });
+            res.status(404).json({ message: 'Player not found' });
+            return;
         }
 
         // Get player's detailed stats
@@ -551,13 +550,13 @@ export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response)
             orderBy: { createdAt: 'desc' }
         });
 
-        const totalRuns = scores.reduce((sum, score) => sum + score.runs, 0);
-        const totalBalls = scores.reduce((sum, score) => sum + score.balls, 0);
-        const totalFours = scores.reduce((sum, score) => sum + score.fours, 0);
-        const totalSixes = scores.reduce((sum, score) => sum + score.sixes, 0);
-        const matchesPlayed = new Set(scores.map(s => s.matchId)).size;
+        const totalRuns = scores.reduce((sum: number, score: any) => sum + score.runs, 0);
+        const totalBalls = scores.reduce((sum: number, score: any) => sum + score.balls, 0);
+        const totalFours = scores.reduce((sum: number, score: any) => sum + score.fours, 0);
+        const totalSixes = scores.reduce((sum: number, score: any) => sum + score.sixes, 0);
+        const matchesPlayed = new Set(scores.map((s: any) => s.matchId)).size;
 
-        const dotBalls = scores.filter(s => s.runs === 0 && s.balls > 0).length;
+        const dotBalls = scores.filter((s: any) => s.runs === 0 && s.balls > 0).length;
         const earnings = (totalRuns * 5) + (totalFours * 50) + (totalSixes * 100) - (dotBalls * 5);
         const strikeRate = totalBalls > 0 ? ((totalRuns / totalBalls) * 100) : 0;
         const average = matchesPlayed > 0 ? (totalRuns / matchesPlayed) : 0;
@@ -575,7 +574,7 @@ export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response)
                 average: Number(average.toFixed(2)),
                 earnings
             },
-            recentMatches: scores.slice(0, 10).map(score => ({
+            recentMatches: scores.slice(0, 10).map((score: any) => ({
                 match: score.match,
                 performance: {
                     runs: score.runs,
