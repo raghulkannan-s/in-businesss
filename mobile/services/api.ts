@@ -1,21 +1,24 @@
 import axios from "axios";
-import Constants from "expo-constants";
-import { 
-  LoginPayload, 
-  AuthResponse, 
-  RegisterPayload, 
+import {
+  LoginPayload,
+  AuthResponse,
+  RegisterPayload,
   User,
   Product,
   CreateProductPayload,
-  UpdateProductPayload,
   Score,
   CreateScorePayload,
   Team,
+  Match,
+  CreateMatchPayload,
+  UpdateMatchPayload,
+  Ball,
+  BallPayload,
   ApiError
 } from "@/types/api";
+
 import Toast from "react-native-toast-message";
 import * as SecureStore from 'expo-secure-store';
-
 
 const BACKEND_URL = "https://api.youths.live";
 
@@ -27,7 +30,6 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
 api.interceptors.request.use(
   async (config) => {
     const token = await SecureStore.getItemAsync('accessToken');
@@ -39,14 +41,30 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired, redirect to login
-      SecureStore.deleteItemAsync('accessToken');
-      SecureStore.deleteItemAsync('refreshToken');
+  async (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Token expired or forbidden, try to refresh
+      try {
+        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        if (refreshToken) {
+          const response = await api.post(`/auth/replenish`, {
+            refreshToken
+          });
+
+          const { accessToken } = response.data;
+          await SecureStore.setItemAsync('accessToken', accessToken);
+
+          // Retry original request
+          error.config.headers.Authorization = `Bearer ${accessToken}`;
+          return api.request(error.config);
+        }
+      } catch (refreshError) {
+        // Refresh failed, clear tokens
+        await SecureStore.deleteItemAsync('accessToken');
+        await SecureStore.deleteItemAsync('refreshToken');
+      }
     }
     return Promise.reject(error);
   }
@@ -68,7 +86,7 @@ function showErrorToast(err: any) {
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
   try {
     const { data } = await api.post<AuthResponse>("/auth/login", payload);
-    Toast.show({ type: "success", text1: data.message });
+    Toast.show({ type: "success", text1: "Login successful" });
     return data;
   } catch (err) {
     showErrorToast(err);
@@ -79,21 +97,7 @@ export async function login(payload: LoginPayload): Promise<AuthResponse> {
 export async function register(payload: RegisterPayload): Promise<AuthResponse> {
   try {
     const { data } = await api.post<AuthResponse>("/auth/register", payload);
-    Toast.show({ type: "success", text1: data.message });
-    return data;
-  } catch (err) {
-    showErrorToast(err);
-    throw err;
-  }
-}
-
-export async function refreshToken(): Promise<{ accessToken: string }> {
-  try {
-    const refreshToken = await SecureStore.getItemAsync('refreshToken');
-    const { data } = await api.post<{ accessToken: string }>("/auth/refresh", {
-      refreshToken
-    });
-    await SecureStore.setItemAsync('accessToken', data.accessToken);
+    Toast.show({ type: "success", text1: "Registration successful" });
     return data;
   } catch (err) {
     showErrorToast(err);
@@ -155,7 +159,7 @@ export async function createProduct(payload: CreateProductPayload): Promise<Prod
   }
 }
 
-export async function updateProduct(id: number, payload: UpdateProductPayload): Promise<Product> {
+export async function updateProduct(id: number, payload: Partial<CreateProductPayload>): Promise<Product> {
   try {
     const { data } = await api.put<Product>(`/product/${id}`, payload);
     Toast.show({ type: "success", text1: "Product updated successfully" });
@@ -176,7 +180,6 @@ export async function deleteProduct(id: number): Promise<void> {
   }
 }
 
-// Score API
 export async function getScores(): Promise<Score[]> {
   try {
     const { data } = await api.get<Score[]>("/score");
@@ -198,7 +201,6 @@ export async function createScore(payload: CreateScorePayload): Promise<Score> {
   }
 }
 
-// Team API
 export async function getTeams(): Promise<Team[]> {
   try {
     const { data } = await api.get<Team[]>("/team");
@@ -220,7 +222,100 @@ export async function createTeam(name: string): Promise<Team> {
   }
 }
 
-// Eligibility API
+export async function getMatches(): Promise<Match[]> {
+  try {
+    const { data } = await api.get<Match[]>("/match");
+    return data;
+  } catch (err) {
+    showErrorToast(err);
+    throw err;
+  }
+}
+
+export async function createMatch(payload: CreateMatchPayload): Promise<Match> {
+  try {
+    const { data } = await api.post<Match>("/match", payload);
+    Toast.show({ type: "success", text1: "Match created successfully" });
+    return data;
+  } catch (err) {
+    showErrorToast(err);
+    throw err;
+  }
+}
+
+export async function getMatch(id: number): Promise<Match> {
+  try {
+    const { data } = await api.get<Match>(`/match/${id}`);
+    return data;
+  } catch (err) {
+    showErrorToast(err);
+    throw err;
+  }
+}
+
+export async function updateMatch(id: number, payload: UpdateMatchPayload): Promise<Match> {
+  try {
+    const { data } = await api.put<Match>(`/match/${id}`, payload);
+    return data;
+  } catch (err) {
+    showErrorToast(err);
+    throw err;
+  }
+}
+
+export async function getBalls(matchId: number): Promise<Ball[]> {
+  try {
+    const { data } = await api.get<Ball[]>(`/match/${matchId}/balls`);
+    return data;
+  } catch (err) {
+    showErrorToast(err);
+    throw err;
+  }
+}
+
+export async function addBall(payload: BallPayload): Promise<Ball> {
+  try {
+    const { data } = await api.post<Ball>("/match/ball", payload);
+    return data;
+  } catch (err) {
+    showErrorToast(err);
+    throw err;
+  }
+}
+
+export async function uploadScreenshot(matchId: number, imageUri: string): Promise<{ url: string }> {
+  try {
+    const formData = new FormData();
+    formData.append('screenshot', {
+      uri: imageUri,
+      type: 'image/jpeg',
+      name: `match_${matchId}_${Date.now()}.jpg`,
+    } as any);
+    formData.append('matchId', matchId.toString());
+
+    const token = await SecureStore.getItemAsync('accessToken');
+    const response = await fetch(`${BACKEND_URL}/upload/screenshot`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Screenshot upload failed');
+    }
+
+    const data = await response.json();
+    Toast.show({ type: "success", text1: "Screenshot uploaded successfully" });
+    return data;
+  } catch (err) {
+    showErrorToast(err);
+    throw err;
+  }
+}
+
 export async function checkEligibility(): Promise<{ eligible: boolean; score: number }> {
   try {
     const { data } = await api.get<{ eligible: boolean; score: number }>("/eligibility");

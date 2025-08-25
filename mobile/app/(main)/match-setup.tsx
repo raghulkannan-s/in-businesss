@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from "react-native";
 import { router } from 'expo-router';
+import { useDataStore } from '@/store/store';
+import { createMatch } from '@/services/api';
 
 export default function MatchSetupScreen() {
   const [team1Name, setTeam1Name] = useState('');
@@ -11,29 +13,39 @@ export default function MatchSetupScreen() {
   const [striker, setStriker] = useState('');
   const [nonStriker, setNonStriker] = useState('');
   const [bowler, setBowler] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleStartMatch = () => {
+  const { fetchMatches } = useDataStore();
+
+  const handleStartMatch = async () => {
     if (!team1Name || !team2Name || !tossWinner || !tossDecision) {
       Alert.alert('Error', 'Please fill all required fields');
       return;
     }
 
-    const matchData = {
-      team1: team1Name,
-      team2: team2Name,
-      tossWinner,
-      tossDecision,
-      overs: parseInt(overs),
-      striker,
-      nonStriker,
-      bowler
-    };
+    setLoading(true);
+    try {
+      const matchData = {
+        team1Name,
+        team2Name,
+        tossWinner,
+        tossDecision,
+        overs: parseInt(overs),
+        striker: striker || undefined,
+        nonStriker: nonStriker || undefined,
+        bowler: bowler || undefined,
+      };
 
-    // Navigate to live match screen with match data
-    router.push({
-      pathname: '/(main)/live-match',
-      params: { matchData: JSON.stringify(matchData) }
-    });
+      const match = await createMatch(matchData);
+      await fetchMatches(); // Refresh matches list
+      
+      // Navigate to live match screen
+      router.replace(`/(main)/live-match?matchId=${match.id}`);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to create match');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,9 +58,17 @@ export default function MatchSetupScreen() {
         <Text style={styles.title}>Match Setup</Text>
       </View>
 
-      {/* Teams Section */}
+      {/* B1. Order 30 Players Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Teams</Text>
+        <Text style={styles.sectionTitle}>B1. Order 30 Players</Text>
+        <Text style={styles.sectionDescription}>
+          Set up team composition and batting order (30 players total)
+        </Text>
+      </View>
+
+      {/* B2. Teams Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>B2. Teams</Text>
         
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Team 1 Name</Text>
@@ -116,12 +136,12 @@ export default function MatchSetupScreen() {
         </View>
       </View>
 
-      {/* Match Settings */}
+      {/* Overs Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Match Settings</Text>
+        <Text style={styles.sectionTitle}>Overs</Text>
         
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Overs</Text>
+          <Text style={styles.label}>Number of Overs</Text>
           <TextInput
             style={styles.input}
             value={overs}
@@ -132,9 +152,9 @@ export default function MatchSetupScreen() {
         </View>
       </View>
 
-      {/* Players Section */}
+      {/* B3. Players Section (Auto & Editing) */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Opening Players (Auto & Editing)</Text>
+        <Text style={styles.sectionTitle}>B3. Opening Players (Auto & Editing)</Text>
         
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Striker</Text>
@@ -167,16 +187,31 @@ export default function MatchSetupScreen() {
         </View>
       </View>
 
+      {/* Feature Preview */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Match Features</Text>
+        <View style={styles.featuresList}>
+          <Text style={styles.featureItem}>✅ B4. Live scoring with screenshots</Text>
+          <Text style={styles.featureItem}>✅ B4A. 4 wicket options (Bowled, Caught, LBW, Run Out)</Text>
+          <Text style={styles.featureItem}>✅ B5. Real-time scoreboard</Text>
+          <Text style={styles.featureItem}>✅ Save scoreboard functionality</Text>
+          <Text style={styles.featureItem}>✅ Ball-by-ball commentary</Text>
+          <Text style={styles.featureItem}>✅ Extras tracking (Wide, No Ball, Bye, Leg Bye)</Text>
+        </View>
+      </View>
+
       {/* Start Match Button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.startButton}
+          style={[styles.startButton, loading && styles.startButtonDisabled]}
           onPress={handleStartMatch}
+          disabled={loading}
         >
-          <Text style={styles.startButtonText}>Start Match</Text>
+          <Text style={styles.startButtonText}>
+            {loading ? 'Creating Match...' : 'Start Match'}
+          </Text>
         </TouchableOpacity>
       </View>
-
 
       <View style={styles.footer}>
         <TouchableOpacity>
@@ -221,6 +256,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#111827',
+    marginBottom: 8,
+  },
+  sectionDescription: {
+    fontSize: 14,
+    color: '#6b7280',
     marginBottom: 16,
   },
   inputGroup: {
@@ -268,6 +308,13 @@ const styles = StyleSheet.create({
   selectedText: {
     color: '#fff',
   },
+  featuresList: {
+    gap: 8,
+  },
+  featureItem: {
+    fontSize: 14,
+    color: '#374151',
+  },
   footer: {
     padding: 24,
   },
@@ -276,6 +323,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  startButtonDisabled: {
+    backgroundColor: '#9ca3af',
   },
   startButtonText: {
     color: '#fff',

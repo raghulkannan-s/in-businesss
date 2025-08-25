@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "IN-PCC",
+    "slug": "in-pcc",
     "version": "1.0.0",
     "android": {
       "package": "com.raghulkannan.mobile",

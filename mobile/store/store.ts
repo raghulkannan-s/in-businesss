@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import { User, Product, Team, Score } from "@/types/api";
-import { getCurrentUser, getProducts, getTeams, getScores } from '@/services/api';
+import { User, Product, Team, Score, Match, Ball } from "@/types/api";
+import { getCurrentUser, getProducts, getTeams, getScores, getMatches, getBalls } from '@/services/api';
 
 interface AuthState {
   user: User | null;
@@ -20,14 +20,23 @@ interface DataState {
   products: Product[];
   teams: Team[];
   scores: Score[];
+  matches: Match[];
+  currentMatch: Match | null;
+  matchBalls: Ball[];
   isLoadingData: boolean;
 
   setProducts: (products: Product[]) => void;
   setTeams: (teams: Team[]) => void;
   setScores: (scores: Score[]) => void;
+  setMatches: (matches: Match[]) => void;
+  setCurrentMatch: (match: Match | null) => void;
+  setMatchBalls: (balls: Ball[]) => void;
+  
   fetchProducts: () => Promise<void>;
   fetchTeams: () => Promise<void>;
   fetchScores: () => Promise<void>;
+  fetchMatches: () => Promise<void>;
+  fetchMatchBalls: (matchId: number) => Promise<void>;
   setLoadingData: (loading: boolean) => void;
 }
 
@@ -111,6 +120,9 @@ export const useDataStore = create<DataState>((set, get) => ({
   products: [],
   teams: [],
   scores: [],
+  matches: [],
+  currentMatch: null,
+  matchBalls: [],
   isLoadingData: false,
 
   setProducts: (products: Product[]) => {
@@ -123,6 +135,18 @@ export const useDataStore = create<DataState>((set, get) => ({
 
   setScores: (scores: Score[]) => {
     set({ scores });
+  },
+
+  setMatches: (matches: Match[]) => {
+    set({ matches });
+  },
+
+  setCurrentMatch: (match: Match | null) => {
+    set({ currentMatch: match });
+  },
+
+  setMatchBalls: (balls: Ball[]) => {
+    set({ matchBalls: balls });
   },
 
   fetchProducts: async () => {
@@ -139,25 +163,37 @@ export const useDataStore = create<DataState>((set, get) => ({
 
   fetchTeams: async () => {
     try {
-      set({ isLoadingData: true });
       const teams = await getTeams();
       set({ teams });
     } catch (error) {
       console.error('Failed to fetch teams:', error);
-    } finally {
-      set({ isLoadingData: false });
     }
   },
 
   fetchScores: async () => {
     try {
-      set({ isLoadingData: true });
       const scores = await getScores();
       set({ scores });
     } catch (error) {
       console.error('Failed to fetch scores:', error);
-    } finally {
-      set({ isLoadingData: false });
+    }
+  },
+
+  fetchMatches: async () => {
+    try {
+      const matches = await getMatches();
+      set({ matches });
+    } catch (error) {
+      console.error('Failed to fetch matches:', error);
+    }
+  },
+
+  fetchMatchBalls: async (matchId: number) => {
+    try {
+      const balls = await getBalls(matchId);
+      set({ matchBalls: balls });
+    } catch (error) {
+      console.error('Failed to fetch match balls:', error);
     }
   },
 
