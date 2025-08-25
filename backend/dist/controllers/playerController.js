@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTeamPlayer = exports.updateTeamPlayer = exports.addTeamPlayer = exports.createTeamPlayers = exports.getTeamPlayer = exports.getTeamPlayers = void 0;
+exports.getPlayerProfile = exports.getPlayerRankings = exports.deleteTeamPlayer = exports.updateTeamPlayer = exports.addTeamPlayer = exports.createTeamPlayers = exports.getTeamPlayer = exports.getTeamPlayers = void 0;
 const db_1 = require("../database/db");
 const getTeamPlayers = async (req, res) => {
     try {
@@ -369,3 +369,171 @@ const deleteTeamPlayer = async (req, res) => {
     }
 };
 exports.deleteTeamPlayer = deleteTeamPlayer;
+const getPlayerRankings = async (req, res) => {
+    try {
+        // Get all player performance data
+        const playerStats = await db_1.prisma.score.groupBy({
+            by: ['playerId'],
+            _sum: {
+                runs: true,
+                fours: true,
+                sixes: true,
+                balls: true,
+                extras: true,
+            },
+            _count: {
+                playerId: true,
+            },
+        });
+        // Calculate detailed rankings with proper earnings formula
+        const rankings = await Promise.all(playerStats.map(async (stat) => {
+            const player = await db_1.prisma.user.findUnique({
+                where: { id: stat.playerId },
+                select: { id: true, name: true, email: true }
+            });
+            if (!player)
+                return null;
+            const runs = stat._sum.runs || 0;
+            const fours = stat._sum.fours || 0;
+            const sixes = stat._sum.sixes || 0;
+            const balls = stat._sum.balls || 0;
+            const totalBalls = stat._count.playerId || 0;
+            // Calculate dot balls (balls with 0 runs, excluding extras)
+            const dotBalls = await db_1.prisma.score.count({
+                where: {
+                    playerId: stat.playerId,
+                    runs: 0,
+                    balls: { gt: 0 },
+                    ballType: 'NORMAL'
+                }
+            });
+            // Calculate wickets taken (as bowler)
+            const wicketsTaken = await db_1.prisma.score.count({
+                where: {
+                    playerId: stat.playerId,
+                    isOut: true,
+                    wicketType: { not: null }
+                }
+            });
+            // Get unique matches played
+            const matchesPlayed = await db_1.prisma.score.findMany({
+                where: { playerId: stat.playerId },
+                select: { matchId: true },
+                distinct: ['matchId']
+            });
+            const matches = matchesPlayed.length;
+            // Earnings calculation based on requirements:
+            // +₹5 per run, -₹5 per dot, +₹50 per wicket (shared), +₹5 per dot bowled, -₹5 per run conceded
+            const batsmanEarnings = (runs * 5) - (dotBalls * 5);
+            const bowlerEarnings = (wicketsTaken * 50); // Simplified for now
+            const totalEarnings = batsmanEarnings + bowlerEarnings;
+            // Performance metrics
+            const strikeRate = balls > 0 ? ((runs / balls) * 100) : 0;
+            const average = matches > 0 ? (runs / matches) : 0;
+            const economy = balls > 0 ? ((stat._sum.extras || 0) / (balls / 6)) : 0;
+            return {
+                player,
+                stats: {
+                    runs,
+                    fours,
+                    sixes,
+                    balls,
+                    dotBalls,
+                    wicketsTaken,
+                    matches,
+                    strikeRate: Number(strikeRate.toFixed(2)),
+                    average: Number(average.toFixed(2)),
+                    economy: Number(economy.toFixed(2)),
+                    batsmanEarnings,
+                    bowlerEarnings,
+                    totalEarnings
+                }
+            };
+        }));
+        // Filter out null entries and sort by total earnings
+        const validRankings = rankings
+            .filter(ranking => ranking !== null)
+            .sort((a, b) => b.stats.totalEarnings - a.stats.totalEarnings);
+        res.status(200).json({
+            message: 'Player rankings retrieved successfully',
+            rankings: validRankings,
+            earningsFormula: {
+                runs: '+₹5 per run',
+                dots: '-₹5 per dot ball',
+                wickets: '+₹50 per wicket',
+                bowlingDots: '+₹5 per dot bowled',
+                runsConceded: '-₹5 per run conceded'
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error fetching player rankings:', error);
+        res.status(500).json({ message: 'Failed to fetch player rankings', error: error.message });
+    }
+};
+exports.getPlayerRankings = getPlayerRankings;
+const getPlayerProfile = async (req, res) => {
+    try {
+        const playerId = parseInt(req.params.id);
+        const player = await db_1.prisma.user.findUnique({
+            where: { id: playerId },
+            select: { id: true, name: true, email: true, role: true }
+        });
+        if (!player) {
+            return res.status(404).json({ message: 'Player not found' });
+        }
+        // Get player's detailed stats
+        const scores = await db_1.prisma.score.findMany({
+            where: { playerId },
+            include: {
+                match: {
+                    select: {
+                        id: true,
+                        title: true,
+                        status: true,
+                        createdAt: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        const totalRuns = scores.reduce((sum, score) => sum + score.runs, 0);
+        const totalBalls = scores.reduce((sum, score) => sum + score.balls, 0);
+        const totalFours = scores.reduce((sum, score) => sum + score.fours, 0);
+        const totalSixes = scores.reduce((sum, score) => sum + score.sixes, 0);
+        const matchesPlayed = new Set(scores.map(s => s.matchId)).size;
+        const dotBalls = scores.filter(s => s.runs === 0 && s.balls > 0).length;
+        const earnings = (totalRuns * 5) + (totalFours * 50) + (totalSixes * 100) - (dotBalls * 5);
+        const strikeRate = totalBalls > 0 ? ((totalRuns / totalBalls) * 100) : 0;
+        const average = matchesPlayed > 0 ? (totalRuns / matchesPlayed) : 0;
+        res.status(200).json({
+            player,
+            stats: {
+                totalRuns,
+                totalFours,
+                totalSixes,
+                totalBalls,
+                dotBalls,
+                matchesPlayed,
+                strikeRate: Number(strikeRate.toFixed(2)),
+                average: Number(average.toFixed(2)),
+                earnings
+            },
+            recentMatches: scores.slice(0, 10).map(score => ({
+                match: score.match,
+                performance: {
+                    runs: score.runs,
+                    balls: score.balls,
+                    fours: score.fours,
+                    sixes: score.sixes,
+                    isOut: score.isOut
+                }
+            }))
+        });
+    }
+    catch (error) {
+        console.error('Error fetching player profile:', error);
+        res.status(500).json({ message: 'Failed to fetch player profile', error });
+    }
+};
+exports.getPlayerProfile = getPlayerProfile;

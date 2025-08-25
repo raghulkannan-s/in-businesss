@@ -1,16 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMatchScoreboardController = exports.updateMatchScoreController = exports.updateMatchWinnerController = exports.updateMatchOversController = exports.updateMatchTossController = exports.deleteMatchController = exports.updateMatchController = exports.createMatchController = exports.getMatchByIdController = exports.getAllMatchesController = void 0;
+exports.getMatchScoreboardController = exports.updateMatchScoreController = exports.addBallToMatch = exports.updateMatchWinnerController = exports.updateMatchOversController = exports.updateMatchTossController = exports.deleteMatchController = exports.updateMatchController = exports.createMatchController = exports.getMatchByIdController = exports.getAllMatchesController = void 0;
 const db_1 = require("../database/db");
 const client_1 = require("@prisma/client");
 const getAllMatchesController = async (req, res) => {
     try {
+        let whereClause = {};
+        // If regular user, only show live matches
+        if (req.user?.role === 'USER') {
+            whereClause.status = client_1.MatchStatus.live;
+        }
+        // If status filter is forced (from middleware)
+        if (req.query.status) {
+            whereClause.status = req.query.status;
+        }
         const matches = await db_1.prisma.match.findMany({
+            where: whereClause,
             include: {
                 teamA: true,
                 teamB: true,
                 winner: true,
             },
+            orderBy: {
+                createdAt: 'desc'
+            }
         });
         res.status(200).json(matches);
     }
@@ -165,75 +178,108 @@ exports.updateMatchWinnerController = updateMatchWinnerController;
 // ========================
 // SCORE RECORDING ENDPOINTS
 // ========================
-const updateMatchScoreController = async (req, res) => {
+const addBallToMatch = async (req, res) => {
     try {
         const matchId = req.params.id;
-        const { playerId, runs, balls, fours, sixes, isOut, over } = req.body;
+        const { playerId, runs, ballType, wicketType, extras } = req.body;
         // Validate required fields
-        if (!playerId || runs === undefined || balls === undefined || over === undefined) {
+        if (!playerId || runs === undefined) {
             res.status(400).json({
-                message: 'playerId, runs, balls, and over are required'
+                message: 'playerId and runs are required'
             });
             return;
         }
-        // Check if match exists and is live
-        const match = await db_1.prisma.match.findUnique({
-            where: { id: matchId }
-        });
-        if (!match) {
-            res.status(404).json({ message: 'Match not found' });
-            return;
-        }
-        if (match.status !== client_1.MatchStatus.live) {
-            res.status(400).json({
-                message: 'Can only update scores for live matches'
+        // Use transaction to ensure data consistency
+        const result = await db_1.prisma.$transaction(async (tx) => {
+            // Get current match state
+            const currentMatch = await tx.match.findUnique({
+                where: { id: matchId },
+                include: { scores: true }
             });
-            return;
-        }
-        // Create or update score record
-        const score = await db_1.prisma.score.create({
-            data: {
-                matchId,
-                playerId: parseInt(playerId),
+            if (!currentMatch) {
+                throw new Error('Match not found');
+            }
+            if (currentMatch.status !== client_1.MatchStatus.live) {
+                throw new Error('Can only update scores for live matches');
+            }
+            // Create the ball record
+            const score = await tx.score.create({
+                data: {
+                    matchId,
+                    playerId: parseInt(playerId),
+                    runs: parseInt(runs),
+                    balls: ballType === 'WIDE' || ballType === 'NO_BALL' ? 0 : 1,
+                    fours: runs === 4 ? 1 : 0,
+                    sixes: runs === 6 ? 1 : 0,
+                    isOut: wicketType && wicketType !== 'NONE',
+                    over: currentMatch.currentOver || 0,
+                    ballType: ballType || 'NORMAL',
+                    wicketType: wicketType || null,
+                    extras: extras || 0
+                },
+                include: {
+                    player: { select: { id: true, name: true, teamId: true } }
+                }
+            });
+            // Calculate new match state
+            const isWicket = wicketType && wicketType !== 'NONE';
+            const actualRuns = ballType === 'WIDE' || ballType === 'NO_BALL' ? 1 + parseInt(runs) : parseInt(runs);
+            const ballsToAdd = ballType === 'WIDE' || ballType === 'NO_BALL' ? 0 : 1;
+            const newBallCount = (currentMatch.currentBall || 0) + ballsToAdd;
+            const newOverCount = Math.floor(newBallCount / 6);
+            const updatedMatch = {
+                team1Score: currentMatch.currentInning === 1 ? (currentMatch.team1Score || 0) + actualRuns : currentMatch.team1Score,
+                team2Score: currentMatch.currentInning === 2 ? (currentMatch.team2Score || 0) + actualRuns : currentMatch.team2Score,
+                team1Wickets: currentMatch.currentInning === 1 && isWicket ? (currentMatch.team1Wickets || 0) + 1 : currentMatch.team1Wickets,
+                team2Wickets: currentMatch.currentInning === 2 && isWicket ? (currentMatch.team2Wickets || 0) + 1 : currentMatch.team2Wickets,
+                currentBall: newBallCount,
+                currentOver: newOverCount,
+                status: client_1.MatchStatus.live
+            };
+            // Check if innings should end (10 wickets or overs completed)
+            const wickets = currentMatch.currentInning === 1 ? updatedMatch.team1Wickets : updatedMatch.team2Wickets;
+            const oversCompleted = newOverCount >= (currentMatch.overs || 20);
+            if ((wickets && wickets >= 10) || oversCompleted) {
+                if (currentMatch.currentInning === 1) {
+                    updatedMatch.currentInning = 2;
+                    updatedMatch.currentBall = 0;
+                    updatedMatch.currentOver = 0;
+                }
+                else {
+                    updatedMatch.status = client_1.MatchStatus.completed;
+                    // Determine winner
+                    if (updatedMatch.team2Score && updatedMatch.team1Score) {
+                        updatedMatch.winnerId = updatedMatch.team2Score > updatedMatch.team1Score ? currentMatch.teamBId : currentMatch.teamAId;
+                    }
+                }
+            }
+            await tx.match.update({
+                where: { id: matchId },
+                data: updatedMatch
+            });
+            // Update player stats
+            await updatePlayerStats(parseInt(playerId), {
                 runs: parseInt(runs),
-                balls: parseInt(balls),
-                fours: parseInt(fours) || 0,
-                sixes: parseInt(sixes) || 0,
-                isOut: Boolean(isOut),
-                over: parseInt(over),
-            },
-            include: {
-                player: {
-                    select: {
-                        id: true,
-                        name: true,
-                    },
-                },
-                match: {
-                    select: {
-                        id: true,
-                        title: true,
-                        status: true,
-                    },
-                },
-            },
-        });
-        // Auto-update player stats (batsman/bowler)
-        await updatePlayerStats(parseInt(playerId), {
-            runs: parseInt(runs),
-            fours: parseInt(fours) || 0,
-            sixes: parseInt(sixes) || 0,
-            isOut: Boolean(isOut),
+                fours: runs === 4 ? 1 : 0,
+                sixes: runs === 6 ? 1 : 0,
+                isOut: isWicket,
+            });
+            return { score, match: { ...currentMatch, ...updatedMatch } };
         });
         res.status(201).json({
-            message: 'Score updated successfully',
-            score,
+            message: 'Ball added successfully',
+            ...result,
         });
     }
     catch (error) {
-        console.error("Error updating match score:", error);
-        res.status(500).json({ message: 'Failed to update score', error });
+        console.error("Error adding ball to match:", error);
+        res.status(500).json({ message: 'Failed to add ball to match', error: error.message });
     }
+};
+exports.addBallToMatch = addBallToMatch;
+const updateMatchScoreController = async (req, res) => {
+    // Legacy endpoint - redirect to addBallToMatch
+    return (0, exports.addBallToMatch)(req, res);
 };
 exports.updateMatchScoreController = updateMatchScoreController;
 const getMatchScoreboardController = async (req, res) => {

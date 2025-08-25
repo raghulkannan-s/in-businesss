@@ -79,7 +79,16 @@ const login = async (req, res) => {
             res.status(400).json({ message: "Phone number is required" });
             return;
         }
-        const user = await db_1.prisma.user.findUnique({ where: { phone: phone } });
+        const user = await db_1.prisma.user.findUnique({ where: { phone: phone }, select: {
+                id: true,
+                password: true,
+                name: true,
+                email: true,
+                role: true,
+                phone: true,
+                inScore: true,
+                eligibility: true
+            } });
         if (!user) {
             res.status(400).json({ message: "User not found" });
             return;
@@ -110,36 +119,42 @@ const login = async (req, res) => {
 exports.login = login;
 const replenish = async (req, res) => {
     try {
-        const { refreshToken } = req.body;
+        const refreshToken = req.headers.authorization;
         if (!refreshToken) {
             res.status(401).json({ message: "Refresh token is required" });
             return;
         }
+        const token = refreshToken.split(" ")[1];
         let decoded;
         try {
-            decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+            decoded = jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_SECRET);
         }
         catch (error) {
             res.status(401).json({ message: "Invalid refresh token" });
             return;
         }
-        // Find the user
         const user = await db_1.prisma.user.findUnique({
-            where: { id: decoded.userId }
+            where: { id: decoded.userId },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                inScore: true,
+                eligibility: true
+            }
         });
         if (!user) {
             res.status(401).json({ message: "User not found" });
             return;
         }
-        // Generate new access token
         const newAccessToken = jsonwebtoken_1.default.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET, {
             expiresIn: "15m",
         });
-        // Return user data with new token
-        const { password: _, id: __, ...userWithoutPasswordandId } = user;
+        const { id: __, ...userWithoutId } = user;
         res.status(200).json({
             accessToken: newAccessToken,
-            user: userWithoutPasswordandId
+            user: userWithoutId
         });
     }
     catch (error) {

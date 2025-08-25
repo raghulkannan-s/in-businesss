@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserByPhone = exports.getUserById = exports.getAll = void 0;
+exports.deleteUser = exports.updateUser = exports.getUserByPhone = exports.getUserById = exports.getAll = void 0;
 const db_1 = require("../database/db");
 const getAll = async (req, res) => {
     try {
@@ -81,3 +81,39 @@ const getUserByPhone = async (req, res) => {
     }
 };
 exports.getUserByPhone = getUserByPhone;
+const updateUser = async (req, res) => {
+    const { id } = req.params;
+    const { email, name, phone, role, eligibility } = req.body;
+    try {
+        const user = await db_1.prisma.user.update({
+            where: { id: parseInt(id) },
+            data: {
+                email,
+                name,
+                phone,
+                role,
+                eligibility,
+            },
+        });
+        res.json(user);
+    }
+    catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ error: "Failed to update user" });
+    }
+};
+exports.updateUser = updateUser;
+const deleteUser = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db_1.prisma.user.delete({
+            where: { id: parseInt(id) },
+        });
+        res.status(204).send();
+    }
+    catch (error) {
+        console.error("Error deleting user:", error);
+        res.status(500).json({ error: "Failed to delete user" });
+    }
+};
+exports.deleteUser = deleteUser;
