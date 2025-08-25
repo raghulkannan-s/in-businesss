@@ -61,6 +61,27 @@ export default function LiveMatch() {
   const addBall = async () => {
     if (!currentMatch) return;
 
+    // Validation: Check if player is selected
+    if (!currentPlayerId) {
+      Alert.alert('Validation Error', 'Please select a player before adding a ball');
+      return;
+    }
+
+    // Validation: Check if match is still live
+    if (currentMatch.status !== 'live') {
+      Alert.alert('Match Ended', 'Cannot add balls to a completed match');
+      return;
+    }
+
+    // Validation: Check over completion (6 balls per over)
+    const currentBall = currentMatch.currentBall || 0;
+    const isExtraBall = selectedExtras === 'WIDE' || selectedExtras === 'NO_BALL';
+    
+    if (!isExtraBall && currentBall >= 6) {
+      Alert.alert('Over Complete', 'This over is already complete. Start a new over.');
+      return;
+    }
+
     try {
       const ballData = {
         playerId: currentPlayerId,
@@ -106,13 +127,19 @@ export default function LiveMatch() {
         // Save to device gallery
         await MediaLibrary.saveToLibraryAsync(uri);
 
-        // Upload to backend
+        // Upload to backend with match context
         const formData = new FormData();
         formData.append('screenshot', {
           uri,
           type: 'image/png',
           name: `match-${matchId}-${Date.now()}.png`,
         } as any);
+        
+        // Add context information
+        formData.append('matchId', matchId as string);
+        formData.append('description', `Live match screenshot - Over ${currentMatch.currentOver}, Ball ${currentMatch.currentBall || 0}`);
+        formData.append('over', (currentMatch.currentOver || 0).toString());
+        formData.append('ball', (currentMatch.currentBall || 0).toString());
 
         const response = await api.post(`/api/matches/${matchId}/screenshot`, formData, {
           headers: {

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../database/db";
 
-export const getAll = async (req: Request, res: Response) => {
+export const getAll = async (req: Request, res: Response): Promise<void> => {
     try {
         const users = await prisma.user.findMany({
             select: {
@@ -98,7 +98,7 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     try {
         await prisma.user.delete({

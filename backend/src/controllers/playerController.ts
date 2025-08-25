@@ -450,12 +450,12 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
                     }
                 });
 
-                // Calculate wickets taken (as bowler)
-                const wicketsTaken = await prisma.score.count({
+                // Calculate wickets taken (as bowler) - this would require a bowlerId field in Score table
+                // For now, we'll calculate wickets as a batsman (times out)
+                const wicketsAsOut = await prisma.score.count({
                     where: {
                         playerId: stat.playerId,
-                        isOut: true,
-                        wicketType: { not: null }
+                        isOut: true
                     }
                 });
 
@@ -468,11 +468,10 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
 
                 const matches = matchesPlayed.length;
 
-                // Earnings calculation based on requirements:
-                // +₹5 per run, -₹5 per dot, +₹50 per wicket (shared), +₹5 per dot bowled, -₹5 per run conceded
-                const batsmanEarnings = (runs * 5) - (dotBalls * 5);
-                const bowlerEarnings = (wicketsTaken * 50); // Simplified for now
-                const totalEarnings = batsmanEarnings + bowlerEarnings;
+                // Enhanced earnings calculation based on comprehensive cricket performance:
+                // Batting: +₹5 per run, +₹50 per four, +₹100 per six, -₹5 per dot ball, -₹50 per dismissal
+                const batsmanEarnings = (runs * 5) + (fours * 50) + (sixes * 100) - (dotBalls * 5) - (wicketsAsOut * 50);
+                const totalEarnings = batsmanEarnings;
 
                 // Performance metrics
                 const strikeRate = balls > 0 ? ((runs / balls) * 100) : 0;
@@ -487,13 +486,12 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
                         sixes,
                         balls,
                         dotBalls,
-                        wicketsTaken,
+                        wicketsAsOut,
                         matches,
                         strikeRate: Number(strikeRate.toFixed(2)),
                         average: Number(average.toFixed(2)),
                         economy: Number(economy.toFixed(2)),
                         batsmanEarnings,
-                        bowlerEarnings,
                         totalEarnings
                     }
                 };
@@ -522,7 +520,7 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
     }
 };
 
-export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response) => {
+export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const playerId = parseInt(req.params.id);
         
@@ -532,7 +530,8 @@ export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response)
         });
 
         if (!player) {
-            return res.status(404).json({ message: 'Player not found' });
+            res.status(404).json({ message: 'Player not found' });
+            return;
         }
 
         // Get player's detailed stats
