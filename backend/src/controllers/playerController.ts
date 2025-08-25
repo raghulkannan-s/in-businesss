@@ -185,7 +185,7 @@ export const createTeamPlayers = async (req: AuthenticatedRequest, res: Response
                 id: team.id,
                 name: team.name,
             },
-            players: createdPlayers.map(p => ({
+            players: createdPlayers.map((p: any) => ({
                 id: p.id,
                 name: p.name,
                 email: p.email,
@@ -426,7 +426,7 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
 
         // Calculate detailed rankings with proper earnings formula
         const rankings = await Promise.all(
-            playerStats.map(async (stat) => {
+            playerStats.map(async (stat: any) => {
                 const player = await prisma.user.findUnique({
                     where: { id: stat.playerId },
                     select: { id: true, name: true, email: true }
@@ -518,7 +518,7 @@ export const getPlayerRankings = async (req: AuthenticatedRequest, res: Response
         });
     } catch (error) {
         console.error('Error fetching player rankings:', error);
-        res.status(500).json({ message: 'Failed to fetch player rankings', error: error.message });
+        res.status(500).json({ message: 'Failed to fetch player rankings', error: (error as Error).message });
     }
 };
 
@@ -551,13 +551,13 @@ export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response)
             orderBy: { createdAt: 'desc' }
         });
 
-        const totalRuns = scores.reduce((sum, score) => sum + score.runs, 0);
-        const totalBalls = scores.reduce((sum, score) => sum + score.balls, 0);
-        const totalFours = scores.reduce((sum, score) => sum + score.fours, 0);
-        const totalSixes = scores.reduce((sum, score) => sum + score.sixes, 0);
-        const matchesPlayed = new Set(scores.map(s => s.matchId)).size;
+        const totalRuns = scores.reduce((sum: number, score: any) => sum + score.runs, 0);
+        const totalBalls = scores.reduce((sum: number, score: any) => sum + score.balls, 0);
+        const totalFours = scores.reduce((sum: number, score: any) => sum + score.fours, 0);
+        const totalSixes = scores.reduce((sum: number, score: any) => sum + score.sixes, 0);
+        const matchesPlayed = new Set(scores.map((s: any) => s.matchId)).size;
 
-        const dotBalls = scores.filter(s => s.runs === 0 && s.balls > 0).length;
+        const dotBalls = scores.filter((s: any) => s.runs === 0 && s.balls > 0).length;
         const earnings = (totalRuns * 5) + (totalFours * 50) + (totalSixes * 100) - (dotBalls * 5);
         const strikeRate = totalBalls > 0 ? ((totalRuns / totalBalls) * 100) : 0;
         const average = matchesPlayed > 0 ? (totalRuns / matchesPlayed) : 0;
@@ -575,7 +575,7 @@ export const getPlayerProfile = async (req: AuthenticatedRequest, res: Response)
                 average: Number(average.toFixed(2)),
                 earnings
             },
-            recentMatches: scores.slice(0, 10).map(score => ({
+            recentMatches: scores.slice(0, 10).map((score: any) => ({
                 match: score.match,
                 performance: {
                     runs: score.runs,

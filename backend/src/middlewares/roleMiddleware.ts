@@ -5,7 +5,7 @@ export const requireRole = (allowedRoles: string[]) => {
     return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
             if (!req.user) {
-                 res.status(401).json({ 
+                res.status(401).json({ 
                     message: 'Authentication required' 
                 });
                 return;
@@ -14,7 +14,7 @@ export const requireRole = (allowedRoles: string[]) => {
             const userRole = req.user.role;
             
             if (!allowedRoles.includes(userRole)) {
-                 res.status(403).json({ 
+                res.status(403).json({ 
                     message: 'Insufficient permissions. Required roles: ' + allowedRoles.join(', '),
                     userRole,
                     allowedRoles
@@ -25,20 +25,26 @@ export const requireRole = (allowedRoles: string[]) => {
             next();
         } catch (error) {
             console.error('Role authorization error:', error);
-            return res.status(500).json({ 
+            res.status(500).json({ 
                 message: 'Authorization error' 
             });
+            return;
         }
     };
 };
 
-// Predefined role combinations
-export const requireAdmin = requireRole(['ADMIN']);
-export const requireOwner = requireRole(['OWNER']);
-export const requireManager = requireRole(['MANAGER']);
-export const requireAdminOrOwner = requireRole(['ADMIN', 'OWNER']);
-export const requireAdminOrManager = requireRole(['ADMIN', 'MANAGER']);
-export const requireManagementLevel = requireRole(['ADMIN', 'OWNER', 'MANAGER']);
+// Generic roleMiddleware function that routes are trying to import
+export const roleMiddleware = (allowedRoles: string[]) => {
+    return requireRole(allowedRoles);
+};
+
+// Predefined role combinations (using lowercase to match Prisma schema)
+export const requireAdmin = requireRole(['admin']);
+export const requireOwner = requireRole(['owner']);
+export const requireManager = requireRole(['manager']);
+export const requireAdminOrOwner = requireRole(['admin', 'owner']);
+export const requireAdminOrManager = requireRole(['admin', 'manager']);
+export const requireManagementLevel = requireRole(['admin', 'owner', 'manager']);
 
 // For viewing live matches (regular users after sports hall)
 export const requireSportsHallAccess = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -53,15 +59,17 @@ export const requireSportsHallAccess = (req: AuthenticatedRequest, res: Response
         const userRole = req.user.role;
         
         // Management roles can always access
-        if (['ADMIN', 'OWNER', 'MANAGER'].includes(userRole)) {
-            return next();
+        if (['admin', 'owner', 'manager'].includes(userRole)) {
+            next();
+            return;
         }
 
         // Regular users can only see live matches
-        if (userRole === 'USER') {
+        if (userRole === 'user') {
             // Additional check: only show live matches for regular users
             req.query.status = 'live'; // Force live status filter
-            return next();
+            next();
+            return;
         }
 
         res.status(403).json({ 
@@ -73,6 +81,5 @@ export const requireSportsHallAccess = (req: AuthenticatedRequest, res: Response
         res.status(500).json({ 
             message: 'Authorization error' 
         });
-        return;
     }
 };
