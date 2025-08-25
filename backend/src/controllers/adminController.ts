@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../database/db';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../types/prisma';
 
 export const promotionController = async (req : Request, res : Response) => {
 
