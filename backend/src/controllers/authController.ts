@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../database/db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
+import { generateTokens } from "../lib/jwt";
 
 export const getMe = async (req: Request, res: Response) => {
   try {
@@ -106,16 +106,15 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const accessToken = jwt.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: "15m" });
-    const refreshToken = jwt.sign({ userId: user.id }, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "7d" });
+    const token = generateTokens(user.id);
 
     const { password: _, id: __, ...userWithoutPasswordandId } = user;
-
+  
     res.status(200).json({
       message: "Login successful",
       user: { ...userWithoutPasswordandId },
-      accessToken,
-      refreshToken
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken
     });
   } catch (error) {
     console.error("Login error:", error);
