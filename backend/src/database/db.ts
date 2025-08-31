@@ -15,7 +15,7 @@ export const prisma =
     },
   });
 
-  const MONGODB_URL = process.env.MONGODB_URL;
+  const MONGODB_URL = process.env.MONGO_URL;
 
 export const connectDB = async () => {
   try {

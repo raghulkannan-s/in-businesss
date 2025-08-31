@@ -36,10 +36,6 @@ const authRouter_1 = __importDefault(require("./routes/authRouter"));
 const adminRouter_1 = __importDefault(require("./routes/adminRouter"));
 const productRouter_1 = __importDefault(require("./routes/productRouter"));
 const scoreRouter_1 = __importDefault(require("./routes/scoreRouter"));
-const teamRouter_1 = __importDefault(require("./routes/teamRouter"));
-const matchRouter_1 = __importDefault(require("./routes/matchRouter"));
-const logsRouter_1 = __importDefault(require("./routes/logsRouter"));
-const uploadRouter_1 = __importDefault(require("./routes/uploadRouter"));
 app.get("/", (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../public/index.html'));
 });
@@ -52,10 +48,6 @@ app.get("/api/health", (req, res) => {
     });
 });
 app.use("/auth", authLimiter, authRouter_1.default);
-app.use("/teams", teamRouter_1.default);
-app.use("/matches", matchRouter_1.default);
-app.use("/logs", logsRouter_1.default);
-app.use("/upload", uploadRouter_1.default);
 app.use("/user", userRouter_1.default);
 app.use("/admin", adminRouter_1.default);
 app.use("/product", productRouter_1.default);

@@ -15,7 +15,7 @@ exports.prisma = globalForPrisma.prisma ??
             },
         },
     });
-const MONGODB_URL = process.env.MONGODB_URL;
+const MONGODB_URL = process.env.MONGO_URL;
 const connectDB = async () => {
     try {
         if (!MONGODB_URL) {

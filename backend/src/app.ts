@@ -44,10 +44,6 @@ import authRouter from "./routes/authRouter";
 import adminRouter from "./routes/adminRouter";
 import productRouter from "./routes/productRouter";
 import scoreRouter from "./routes/scoreRouter";
-import teamRouter from "./routes/teamRouter";
-import matchRouter from "./routes/matchRouter";
-import logsRouter from "./routes/logsRouter";
-import uploadRouter from "./routes/uploadRouter";
 
 app.get("/", (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
@@ -64,11 +60,6 @@ app.get("/api/health", (req: Request, res: Response) => {
 
 
 app.use("/auth", authLimiter, authRouter);
-app.use("/teams", teamRouter);
-app.use("/matches", matchRouter);
-app.use("/logs", logsRouter);
-app.use("/upload", uploadRouter);
-
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);
 app.use("/product", productRouter);

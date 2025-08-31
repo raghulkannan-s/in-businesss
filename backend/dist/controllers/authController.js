@@ -41,9 +41,9 @@ const getMe = async (req, res) => {
 exports.getMe = getMe;
 const register = async (req, res) => {
     try {
-        const { name, email, phone, password } = req.body;
-        if (!name || !email || !phone || !password) {
-            res.status(400).json({ message: "Name, email, phone, and password are required" });
+        const { name, email, phone, password, address } = req.body;
+        if (!name || !email || !phone || !password || !address) {
+            res.status(400).json({ message: "Name, email, phone, address, and password are required" });
             return;
         }
         const userExists = await db_1.prisma.user.findUnique({ where: { phone: phone } });
@@ -53,14 +53,15 @@ const register = async (req, res) => {
         }
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
         const user = await db_1.prisma.user.create({
-            data: { name, email, phone, password: hashedPassword },
+            data: { name, email, phone, address, password: hashedPassword },
         });
         res.status(201).json({
             message: "User registered successfully",
             user: {
                 phone: user.phone,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                address: user.address
             }
         });
     }
