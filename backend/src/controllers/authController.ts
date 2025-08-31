@@ -39,10 +39,10 @@ export const getMe = async (req: Request, res: Response) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, phone, password } = req.body;
+    const { name, email, phone, password, address } = req.body;
 
-    if (!name || !email || !phone || !password) {
-      res.status(400).json({ message: "Name, email, phone, and password are required" });
+    if (!name || !email || !phone || !password || !address) {
+      res.status(400).json({ message: "Name, email, phone, address, and password are required" });
       return;
     }
 
@@ -55,7 +55,7 @@ export const register = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { name, email, phone, password: hashedPassword },
+      data: { name, email, phone, address, password: hashedPassword },
     });
 
     res.status(201).json({
@@ -63,7 +63,8 @@ export const register = async (req: Request, res: Response) => {
       user: {
         phone: user.phone,
         name: user.name,
-        email: user.email
+        email: user.email,
+        address: user.address
       }
     });
   } catch (error) {
@@ -179,5 +180,3 @@ export const replenish = async (req: Request, res: Response) => {
     });
   }
 };
-
-

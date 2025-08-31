@@ -31,6 +31,7 @@ model User {
   email       String     @unique
   role        UserRole   @default(user)
   phone       String     @unique
+  address     String
   password    String
   eligibility Boolean    @default(true)
   inScore     Int        @default(0)
