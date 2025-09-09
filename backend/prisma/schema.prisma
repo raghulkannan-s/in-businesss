@@ -52,7 +52,7 @@ model Product {
   price       Float    @default(0)
   stock       Int      @default(0)
   category    String   @default("General")
-  imageUrl    String   @default("https://via.placeholder.com/150")
+  imageUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdBy   Int

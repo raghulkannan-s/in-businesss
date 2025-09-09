@@ -2,11 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const router = (0, express_1.Router)();
+const uploadCloudinary_1 = require("../middlewares/uploadCloudinary");
 const roleMiddleware_1 = require("../middlewares/roleMiddleware");
 const authMiddleware_1 = require("../middlewares/authMiddleware");
 const productController_1 = require("../controllers/productController");
 router.get("/getAll", productController_1.getProducts);
-router.post("/create", authMiddleware_1.authMiddleware, (0, roleMiddleware_1.roleMiddleware)(["admin"]), productController_1.createProduct);
+router.post("/create", authMiddleware_1.authMiddleware, (0, roleMiddleware_1.roleMiddleware)(["admin"]), uploadCloudinary_1.upload.single("file"), productController_1.createProduct);
 router.put("/update", authMiddleware_1.authMiddleware, (0, roleMiddleware_1.roleMiddleware)(["admin"]), productController_1.updateProduct);
 router.delete("/delete", authMiddleware_1.authMiddleware, (0, roleMiddleware_1.roleMiddleware)(["admin"]), productController_1.deleteProduct);
 router.get("/:id", productController_1.getOneProduct);

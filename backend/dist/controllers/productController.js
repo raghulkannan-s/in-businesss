@@ -4,17 +4,18 @@ exports.deleteProduct = exports.getProducts = exports.getOneProduct = exports.up
 const db_1 = require("../database/db");
 const createProduct = async (req, res) => {
     try {
-        const { name, description, price, category, stock, imageUrl } = req.body;
+        const { name, description, price, category, stock } = req.body;
+        const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
         const product = await db_1.prisma.product.create({
             data: {
-                name: name,
-                description: description,
+                name,
+                description,
                 price: parseFloat(price),
-                category: category,
+                category,
                 stock: parseInt(stock),
-                imageUrl: imageUrl,
-                createdBy: req.user.phone
-            }
+                imageUrl,
+                createdBy: req.user.phone,
+            },
         });
         res.status(201).json({
             message: "Product created successfully",
