@@ -20,9 +20,9 @@ export default function NotFoundScreen() {
           <Text className="text-gray-800 font-medium">Go Back</Text>
         </TouchableOpacity>
         
-        <Link href="/" asChild>
+        <Link href="/main/hall">
           <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg">
-            <Text className="text-white font-medium">Go Home</Text>
+            <Text className="text-white font-medium">Go to Hall</Text>
           </TouchableOpacity>
         </Link>
       </View>

@@ -8,6 +8,7 @@ export interface RegisterPayload{
   name: string;
   email: string;
   phone: string;
+  address: string;
   password: string;
 }
 export interface User {
@@ -15,6 +16,7 @@ export interface User {
   email: string;
   role: string;
   phone: string;
+  address: string;
   inScore: number;
   eligibility: boolean;
 

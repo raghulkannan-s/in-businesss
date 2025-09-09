@@ -1,40 +1,44 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, StyleSheet } from 'react-native';
-import { Link, router } from 'expo-router';
-import { register } from '@/services/api';
+import {  router } from 'expo-router';
+import  { create_product } from '@/services/product.api';
 import Toast from 'react-native-toast-message';
 
-export default function RegisterScreen() {
+export default function ProductScreen() {
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
+    const [product, setProduct] = useState({
+      name: '',
+      description: '',
+      price: '',
+      category: 'general',
+      stock: '',
+      imageUrl: '',
+    });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit() {
     setError(null);
-    if (password !== confirm) {
-      setError('Passwords do not match');
-      return;
-    }
+
     setLoading(true);
     try {
-     const data = await register({ name, email, phone, password });
+     const data = await create_product(product);
      Toast.show({
        type: 'success',
        text1: data.message,
      });
-     setName('');
-     setEmail('');
-     setPhone('');
-     setPassword('');
-     setConfirm('');
-     router.push('/(auth)/login');
+     setProduct({
+       name: '',
+       description: '',
+       price: '',
+       category: 'general',
+       stock: '',
+       imageUrl: '',
+     });
+     router.push('/main/hall');
     } catch (e:any) {
-      setError(e.message || 'Registration failed');
+      setError(e.message || 'Product Creation failed');
     } finally {
       setLoading(false);
     }
@@ -50,66 +54,60 @@ export default function RegisterScreen() {
 
         <View style={styles.form}>
           <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Name</Text>
+            <Text style={styles.label}>Product Name</Text>
             <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder='Your Name'
+              value={product.name}
+              onChangeText={(text) => setProduct({ ...product, name: text })}
+              placeholder='Product Name'
               style={styles.input}
             />
           </View>
+
           <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Phone</Text>
-            <TextInput
-              value={phone}
-              onChangeText={setPhone}
-              placeholder='9876543210'
-              keyboardType='phone-pad'
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>Description</Text>
             <TextInput
               autoCapitalize='none'
-              keyboardType='email-address'
-              value={email}
-              onChangeText={setEmail}
-              placeholder='you@example.com'
+              keyboardType='default'
+              value={product.description}
+              onChangeText={(text) => setProduct({ ...product, description: text })}
+              placeholder='Product Description'
               style={styles.input}
             />
           </View>
           <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>Price</Text>
             <TextInput
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              placeholder='Create a password'
+              autoCapitalize='none'
+              keyboardType='numeric'
+              value={product.price}
+              onChangeText={(text) => setProduct({ ...product, price: text })}
+              placeholder='Product Price'
               style={styles.input}
             />
           </View>
+
           <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Confirm Password</Text>
+            <Text style={styles.label}>Stock</Text>
             <TextInput
-              secureTextEntry
-              value={confirm}
-              onChangeText={setConfirm}
-              placeholder='Repeat password'
+              autoCapitalize='none'
+              keyboardType='numeric'
+              value={product.stock}
+              onChangeText={(text) => setProduct({ ...product, stock: text })}
+              placeholder='Product Stock'
               style={styles.input}
             />
+          </View>
+          
           </View>
           {error && <Text style={styles.error}>{error}</Text>}
           <Pressable onPress={onSubmit} disabled={loading} style={({ pressed }) => [styles.button, (pressed || loading) && styles.buttonPressed]}>
-            {loading ? <ActivityIndicator color='#fff' /> : <Text style={styles.buttonText}>Register</Text>}
+            {loading ? <ActivityIndicator color='#fff' /> : <Text style={styles.buttonText}>Create Product</Text>}
           </Pressable>
         </View>
 
-        <View style={styles.rowCenter}>
-          <Text style={styles.small}>Have an account?</Text>
-            <Link href='/(auth)/login' style={styles.link}>Login</Link>
-        </View>
-      </View>
+        <Pressable onPress={() => router.push('/main/hall')} style={styles.buttonLight}>
+          <Text style={styles.buttonTextDark}>Go To Sports Hall</Text>
+        </Pressable>
     </KeyboardAvoidingView>
   );
 }
@@ -127,7 +125,9 @@ const styles = StyleSheet.create({
   error: { color: 'crimson', fontSize: 13 },
   button: { backgroundColor: '#111827', paddingVertical: 14, borderRadius: 10, alignItems: 'center' },
   buttonPressed: { opacity: 0.7 },
+  buttonLight: { backgroundColor: '#dcdcdcff', paddingVertical: 14, borderRadius: 10, alignItems: 'center' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  buttonTextDark: { color: '#000', fontSize: 16, fontWeight: '700' },
   rowCenter: { flexDirection: 'row', justifyContent: 'center', gap: 4 },
   small: { fontSize: 14 },
   link: { fontSize: 14, fontWeight: '600', color: '#2563eb' }

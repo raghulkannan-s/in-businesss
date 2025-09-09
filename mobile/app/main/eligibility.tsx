@@ -45,10 +45,10 @@ export default function EligibilityScreen() {
       {eligibilityScore >= 0 && (
         <View style={styles.footer}>
           <Pressable
-            onPress={() => router.push('/(main)/home')}
-            style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
+            onPress={() => router.push('/main/home')}
+            style={({ pressed }) => [styles.Button, pressed && styles.ButtonPressed]}
           >
-            <Text style={styles.homeButtonText}>Go to Home</Text>
+            <Text style={styles.ButtonText}>Go to Home</Text>
           </Pressable>
         </View>
       )}
@@ -57,79 +57,19 @@ export default function EligibilityScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 60,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-  scoreContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  score: {
-    fontSize: 120,
-    fontWeight: '800',
-    lineHeight: 120,
-  },
-  scoreOutOf: {
-    fontSize: 24,
-    color: '#9ca3af',
-    marginTop: -10,
-    marginBottom: 16,
-  },
-  scoreLabel: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  infoContainer: {
-    backgroundColor: '#f9fafb',
-    padding: 20,
-    borderRadius: 12,
-    marginHorizontal: 20,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  footer: {
-    paddingBottom: 20,
-  },
-  homeButton: {
-    backgroundColor: '#111827',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  homeButtonPressed: {
-    opacity: 0.8,
-  },
-  homeButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 24, paddingVertical: 40, },
+  content: { flex: 1, justifyContent: 'center', alignItems: 'center', },
+  header: { alignItems: 'center', marginBottom: 60, },
+  title: { fontSize: 28, fontWeight: '700', color: '#111827', textAlign: 'center', marginBottom: 8, },
+  subtitle: { fontSize: 16, color: '#6b7280', textAlign: 'center', },
+  scoreContainer: { alignItems: 'center', marginBottom: 40, },
+  score: { fontSize: 120, fontWeight: '800', lineHeight: 120, },
+  scoreOutOf: { fontSize: 24, color: '#9ca3af', marginTop: -10, marginBottom: 16, },
+  scoreLabel: { fontSize: 24, fontWeight: '600', },
+  infoContainer: { backgroundColor: '#f9fafb', padding: 20, borderRadius: 12, marginHorizontal: 20,  },
+  infoText: { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 20, },
+  footer: { paddingBottom: 20, },
+  Button: { backgroundColor: '#111827', paddingVertical: 16, borderRadius: 12, alignItems: 'center', },
+  ButtonPressed: { opacity: 0.8, },
+  ButtonText: { color: '#fff', fontSize: 18, fontWeight: '600', },
 });
